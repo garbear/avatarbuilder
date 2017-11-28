@@ -15,6 +15,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+import collections
 import cv2
 import numpy
 import os
@@ -53,10 +54,35 @@ class AvatarImage(object):
 
                 frame = image[y: y + h, x: x + w, :]
 
-                # TODO: If frame is empty, continue
+                top_left = frame[0, 0]
+                top_right = frame[0, frame.shape[1] - 1]
+                bottom_left = frame[frame.shape[0] - 1, frame.shape[1] - 1]
+                bottom_right = frame[frame.shape[0] - 1, 0]
 
-                frame_path = os.path.join(output_path, '{}.png'.format(index))
-                index = index + 1
+                corners = [top_left, top_right, bottom_left, bottom_right]
+                alpha = AvatarImage._get_alpha(corners)
+
+                # Check if frame is empty
+                empty = not numpy.any(frame - alpha)
+                filename = '{}{}.png'.format(index, '-empty' if empty else '')
+
+                frame_path = os.path.join(output_path, filename)
+                index += 1
                 cv2.imwrite(frame_path, frame)
 
         return True
+
+    @staticmethod
+    def _get_alpha(corners):
+        corner_strings = [corner.tostring() for corner in corners]
+
+        corner_dict = {
+            corner_strings[0]: corners[0],
+            corner_strings[1]: corners[1],
+            corner_strings[2]: corners[2],
+            corner_strings[3]: corners[3]
+        }
+
+        data = collections.Counter(corner_strings)
+        mode = data.most_common(1)[0][0]
+        return corner_dict[mode]
