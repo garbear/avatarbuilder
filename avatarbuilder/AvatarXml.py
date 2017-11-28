@@ -18,6 +18,7 @@
 from avatarbuilder.Avatar import Avatar
 
 import os
+import xml.dom.minidom
 import xml.etree.ElementTree
 
 
@@ -78,3 +79,66 @@ class AvatarXml(object):
                     ret.append(avatar)
 
         return ret
+
+    @staticmethod
+    def save_avatars(avatars, avatars_xml_path):
+        print('Saving {} avatars to {}'.format(len(avatars), avatars_xml_path))
+        relpath = os.path.dirname(avatars_xml_path)
+        avatars_xml = xml.etree.ElementTree.Element('avatars')
+        for avatar in avatars:
+            avatar_xml = xml.etree.ElementTree.SubElement(avatars_xml, 'avatar')
+            AvatarXml.serialize_avatar(avatar, avatar_xml, relpath)
+
+        dom = xml.dom.minidom.parseString(
+            xml.etree.ElementTree.tostring(avatars_xml))
+
+        xmlstr = dom.toprettyxml(indent='\t')
+        with open(avatars_xml_path, 'w') as file:
+            file.write(xmlstr)
+
+    @staticmethod
+    def serialize_avatar(avatar, avatar_xml, relpath):
+        avatar_xml.set('name', avatar.name())
+
+        relpath = os.path.join(relpath, '')  # Append trailing slash
+        common = os.path.commonprefix([relpath, avatar.image()])
+        image_path = avatar.image()[len(common):]
+        # avatar_xml.set('image', image_path)
+
+        if avatar.author():
+            author = xml.etree.ElementTree.SubElement(avatar_xml, 'author')
+            author.text = avatar.author()
+
+        if avatar.source():
+            source = xml.etree.ElementTree.SubElement(avatar_xml, 'source')
+            source.text = avatar.source()
+
+        if avatar.license():
+            license_name = xml.etree.ElementTree.SubElement(avatar_xml,
+                                                            'license')
+            license_name.text = avatar.license()
+
+        if avatar.disclaimer():
+            disclaimer = xml.etree.ElementTree.SubElement(avatar_xml,
+                                                          'disclaimer')
+            disclaimer.text = avatar.license()
+
+        width = xml.etree.ElementTree.SubElement(avatar_xml, 'width')
+        width.text = str(avatar.width())
+
+        height = xml.etree.ElementTree.SubElement(avatar_xml, 'height')
+        height.text = str(avatar.height())
+
+        columns = xml.etree.ElementTree.SubElement(avatar_xml, 'columns')
+        columns.text = str(avatar.columns())
+        if avatar.offsetx() > 0:
+            columns.set('offset', str(avatar.offsetx()))
+
+        rows = xml.etree.ElementTree.SubElement(avatar_xml, 'rows')
+        rows.text = str(avatar.rows())
+        if avatar.offsety() > 0:
+            rows.set('offset', str(avatar.offsety()))
+
+        if avatar.border() > 0:
+            border = xml.etree.ElementTree.SubElement(avatar_xml, 'border')
+            border.text = str(avatar.border())

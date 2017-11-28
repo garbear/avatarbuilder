@@ -20,11 +20,11 @@ import os
 
 class Avatar(object):
     def __init__(self, author, source, license_name, disclaimer):
+        self._name = ''
         self._author = author
         self._source = source
         self._license = license_name
         self._disclaimer = disclaimer
-        self._name = ''
         self._image = ''
         self._width = 0
         self._height = 0
@@ -36,6 +36,42 @@ class Avatar(object):
 
     def name(self):
         return self._name
+
+    def author(self):
+        return self._author
+
+    def source(self):
+        return self._source
+
+    def license(self):
+        return self._license
+
+    def disclaimer(self):
+        return self._disclaimer
+
+    def image(self):
+        return self._image
+
+    def width(self):
+        return self._width
+
+    def height(self):
+        return self._height
+
+    def columns(self):
+        return self._columns
+
+    def rows(self):
+        return self._rows
+
+    def offsetx(self):
+        return self._offsetx
+
+    def offsety(self):
+        return self._offsety
+
+    def border(self):
+        return self._border
 
     def deserialize(self, avatar, root_dir):
         # Get name

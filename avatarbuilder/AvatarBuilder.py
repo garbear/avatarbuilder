@@ -15,6 +15,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+from avatarbuilder.AvatarImage import AvatarImage
 from avatarbuilder.AvatarRepo import AvatarRepo
 from avatarbuilder.AvatarXml import AvatarXml
 
@@ -47,8 +48,17 @@ class AvatarBuilder(object):
                     loaded_avatars = AvatarXml.load_avatars(avatars_xml_path)
                     avatars.extend(loaded_avatars)
 
+        save_avatars = []
         for avatar in avatars:
-            print('Found avatar: {}'.format(avatar.name()))
+            image = AvatarImage.load_image(avatar.image())
+
+            # TODO: Check if image is None
+
+            if AvatarImage.generate_frames(image, avatar):
+                save_avatars.append(avatar)
+
+        avatars_xml_path = os.path.join(self._directory, AvatarXml.FILE_NAME)
+        AvatarXml.save_avatars(save_avatars, avatars_xml_path)
 
         print('Finished building')
 
