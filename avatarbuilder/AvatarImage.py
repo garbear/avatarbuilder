@@ -15,12 +15,48 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+import cv2
+import numpy
+import os
+
 
 class AvatarImage(object):
-    @staticmethod
-    def load_image(image_path):
-        return None
+    FRAME_PATH = 'frames'
 
     @staticmethod
-    def generate_frames(image, avatar):
+    def load_image(image_path):
+        image = None
+
+        with open(image_path, 'rb') as img_stream:
+            buf = img_stream.read()
+            data = numpy.asarray(bytearray(buf), dtype=numpy.uint8)
+            image = cv2.imdecode(data, cv2.IMREAD_UNCHANGED)
+
+        return image
+
+    @staticmethod
+    def generate_frames(image, avatar, path):
+        # Ensure output path exists
+        output_path = os.path.join(path, AvatarImage.FRAME_PATH)
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        index = 1
+        for j in range(avatar.rows()):
+            for i in range(avatar.columns()):
+                x = avatar.offsetx() + avatar.border() + \
+                    i * (avatar.width() + avatar.border())
+                y = avatar.offsety() + avatar.border() + \
+                    j * (avatar.height() + avatar.border())
+                w = avatar.width() - avatar.border()
+                h = avatar.height() - avatar.border()
+
+                frame = image[y: y + h, x: x + w, :]
+
+                # TODO: If frame is empty, continue
+
+                frame_path = os.path.join(output_path, '{}.png'.format(index))
+                index = index + 1
+                cv2.imwrite(frame_path, frame)
+
         return True

@@ -51,10 +51,16 @@ class AvatarBuilder(object):
         save_avatars = []
         for avatar in avatars:
             image = AvatarImage.load_image(avatar.image())
+            if image is None:
+                print('Failed to load image: "{}"'.format(avatar.image()))
+                continue
 
-            # TODO: Check if image is None
+            # Generate path for avatar
+            avatar_path = os.path.join(self._directory, avatar.name())
+            if not os.path.exists(avatar_path):
+                os.makedirs(avatar_path)
 
-            if AvatarImage.generate_frames(image, avatar):
+            if AvatarImage.generate_frames(image, avatar, avatar_path):
                 save_avatars.append(avatar)
 
         avatars_xml_path = os.path.join(self._directory, AvatarXml.FILE_NAME)
