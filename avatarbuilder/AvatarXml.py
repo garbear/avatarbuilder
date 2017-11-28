@@ -121,7 +121,7 @@ class AvatarXml(object):
         if avatar.disclaimer():
             disclaimer = xml.etree.ElementTree.SubElement(avatar_xml,
                                                           'disclaimer')
-            disclaimer.text = avatar.license()
+            disclaimer.text = avatar.disclaimer()
 
         width = xml.etree.ElementTree.SubElement(avatar_xml, 'width')
         width.text = str(avatar.width())
