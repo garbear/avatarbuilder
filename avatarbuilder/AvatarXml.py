@@ -90,7 +90,7 @@ class AvatarXml(object):
             AvatarXml.serialize_avatar(avatar, avatar_xml, relpath)
 
         dom = xml.dom.minidom.parseString(
-            xml.etree.ElementTree.tostring(avatars_xml))
+            xml.etree.ElementTree.tostring(avatars_xml, encoding='UTF-8'))
 
         xmlstr = dom.toprettyxml(indent='\t')
         with open(avatars_xml_path, 'w') as file:
