@@ -17,6 +17,7 @@
 
 from avatarbuilder.AvatarImage import AvatarImage
 from avatarbuilder.AvatarRepo import AvatarRepo
+from avatarbuilder.AvatarResources import AvatarResources
 from avatarbuilder.AvatarXml import AvatarXml
 
 import os
@@ -25,6 +26,7 @@ import os
 class AvatarBuilder(object):
     _REPO_FOLDER = 'download'
     _BUILD_FOLDER = 'build'
+    _AVATARS_FOLDER = 'avatars'
 
     def __init__(self, directory, repo_url):
         self._directory = directory
@@ -41,12 +43,16 @@ class AvatarBuilder(object):
         avatars = self._get_avatars(repo.getpath())
 
         # Generate frames
-        save_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
-        save_avatars = self._generate_frames(avatars, save_path)
+        build_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
+        frames_path = os.path.join(build_path, AvatarBuilder._AVATARS_FOLDER)
+        save_avatars = self._generate_frames(avatars, frames_path)
 
         # Save avatars.xml
-        avatars_xml_path = os.path.join(save_path, AvatarXml.FILE_NAME)
+        avatars_xml_path = os.path.join(build_path, AvatarXml.FILE_NAME)
         AvatarXml.save_avatars(save_avatars, avatars_xml_path)
+
+        # Copy resources
+        AvatarResources.copy_files(repo.getpath(), build_path)
 
         print('Finished building')
 
