@@ -22,7 +22,7 @@ import os
 
 
 class AvatarImage(object):
-    FRAME_PATH = 'frames'
+    FRAME_PATH = 'frames-{}x'  # {} - scaling factor
 
     @staticmethod
     def load_image(image_path):
@@ -37,10 +37,7 @@ class AvatarImage(object):
 
     @staticmethod
     def generate_frames(image, avatar, path):
-        # Ensure output path exists
-        output_path = os.path.join(path, AvatarImage.FRAME_PATH)
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+        image_width, image_height = image.shape[:2]
 
         index = 1
         alpha = None
@@ -55,27 +52,56 @@ class AvatarImage(object):
                 h = avatar.height()
 
                 # Verify we have a complete frame
-                if y + h >= image.shape[0] or x + w >= image.shape[1]:
+                if y + h >= image_height or x + w >= image_width:
                     continue
 
                 # Crop the image
-                frame = image[y: y + h, x: x + w, :]
+                frame = AvatarImage._crop(image, x, y, w, h)
 
                 # Detect the alpha value
                 if alpha is None:
                     alpha = AvatarImage._get_alpha(frame)
 
                 # TODO: Skip frame if empty
-                empty = not numpy.any(frame - alpha)
+                # empty = not numpy.any(frame - alpha)
 
-                frame = AvatarImage._set_alpha(frame, alpha)
+                frame = AvatarImage._set_transparent(frame, alpha)
 
-                filename = '{}.png'.format(index)
-                frame_path = os.path.join(output_path, filename)
-                index += 1
-                cv2.imwrite(frame_path, frame)
+                for scale in [1, 2, 4, 8, 16]:
+                    width = w * scale
+                    height = h * scale
+
+                    if scale > 1 and (height > 512 or width > 512):
+                        break
+
+                    # Scale frame
+                    if scale == 1:
+                        scaled = frame
+                    else:
+                        scaled = cv2.resize(frame, None, fx=scale, fy=scale,
+                                            interpolation=cv2.INTER_NEAREST)
+
+                    # Calculate output folder
+                    folder_name = AvatarImage.FRAME_PATH.format(scale)
+                    output_folder = os.path.join(path, folder_name)
+
+                    # Ensure output folder exists
+                    if not os.path.exists(output_folder):
+                        os.makedirs(output_folder)
+
+                    # Calculate filename
+                    filename = '{}.png'.format(index)
+                    frame_path = os.path.join(output_folder, filename)
+                    index += 1
+
+                    # Write image
+                    cv2.imwrite(frame_path, scaled)
 
         return True
+
+    @staticmethod
+    def _crop(frame, x, y, w, h):
+        return frame[y: y + h, x: x + w, :]
 
     @staticmethod
     def _get_alpha(frame):
@@ -100,7 +126,7 @@ class AvatarImage(object):
         return corner_dict[mode]
 
     @staticmethod
-    def _set_alpha(frame, alpha):
+    def _set_transparent(frame, alpha):
         new_frame = numpy.zeros((frame.shape[0], frame.shape[1], 4))
         for i in range(frame.shape[0]):
             for j in range(frame.shape[1]):
