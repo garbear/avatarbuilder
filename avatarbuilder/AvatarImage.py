@@ -43,29 +43,34 @@ class AvatarImage(object):
             os.makedirs(output_path)
 
         index = 1
+        alpha = None
         for j in range(avatar.rows()):
             for i in range(avatar.columns()):
+                # Calcalate the crop coordinates
                 x = avatar.offsetx() + avatar.border() + \
                     i * (avatar.width() + avatar.border())
                 y = avatar.offsety() + avatar.border() + \
                     j * (avatar.height() + avatar.border())
-                w = avatar.width() - avatar.border()
-                h = avatar.height() - avatar.border()
+                w = avatar.width()
+                h = avatar.height()
 
+                # Verify we have a complete frame
+                if y + h >= image.shape[0] or x + w >= image.shape[1]:
+                    continue
+
+                # Crop the image
                 frame = image[y: y + h, x: x + w, :]
 
-                top_left = frame[0, 0]
-                top_right = frame[0, frame.shape[1] - 1]
-                bottom_left = frame[frame.shape[0] - 1, frame.shape[1] - 1]
-                bottom_right = frame[frame.shape[0] - 1, 0]
+                # Detect the alpha value
+                if alpha is None:
+                    alpha = AvatarImage._get_alpha(frame)
 
-                corners = [top_left, top_right, bottom_left, bottom_right]
-                alpha = AvatarImage._get_alpha(corners)
-
-                # Check if frame is empty
+                # TODO: Skip frame if empty
                 empty = not numpy.any(frame - alpha)
-                filename = '{}{}.png'.format(index, '-empty' if empty else '')
 
+                frame = AvatarImage._set_alpha(frame, alpha)
+
+                filename = '{}.png'.format(index)
                 frame_path = os.path.join(output_path, filename)
                 index += 1
                 cv2.imwrite(frame_path, frame)
@@ -73,7 +78,14 @@ class AvatarImage(object):
         return True
 
     @staticmethod
-    def _get_alpha(corners):
+    def _get_alpha(frame):
+        top_left = frame[0, 0]
+        top_right = frame[0, frame.shape[1] - 1]
+        bottom_left = frame[frame.shape[0] - 1, frame.shape[1] - 1]
+        bottom_right = frame[frame.shape[0] - 1, 0]
+
+        corners = [top_left, top_right, bottom_left, bottom_right]
+
         corner_strings = [corner.tostring() for corner in corners]
 
         corner_dict = {
@@ -86,3 +98,8 @@ class AvatarImage(object):
         data = collections.Counter(corner_strings)
         mode = data.most_common(1)[0][0]
         return corner_dict[mode]
+
+    @staticmethod
+    def _set_alpha(frame, alpha):
+        # TODO
+        return frame
