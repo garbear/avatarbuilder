@@ -15,6 +15,8 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+from avatarbuilder.Avatar import Orientation
+
 import collections
 import cv2
 import numpy
@@ -39,10 +41,15 @@ class AvatarImage(object):
     def generate_frames(image, avatar, path):
         image_width, image_height = image.shape[:2]
 
-        index = 1
         alpha = None
         for j in range(avatar.rows()):
             for i in range(avatar.columns()):
+                # Calculate frame index
+                if avatar.orientation() == Orientation.HORIZONTAL:
+                    index = j * avatar.rows() + i + 1
+                else:
+                    index = i * avatar.columns() + j + 1
+
                 # Calculate the crop coordinates
                 x = avatar.offsetx() + avatar.border() + \
                     i * (avatar.width() + avatar.border())

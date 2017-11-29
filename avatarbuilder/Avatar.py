@@ -15,10 +15,17 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+import enum
 import os
 
 
+class Orientation(str, enum.Enum):
+    HORIZONTAL = 'horizontal'
+    VERTICAL = 'vertical'
+
+
 class Avatar(object):
+
     def __init__(self, author, source, license_name, disclaimer):
         self._name = ''
         self._author = author
@@ -33,6 +40,7 @@ class Avatar(object):
         self._offsetx = 0
         self._offsety = 0
         self._border = 0
+        self._orientation = Orientation.HORIZONTAL
 
     def name(self):
         return self._name
@@ -72,6 +80,9 @@ class Avatar(object):
 
     def border(self):
         return self._border
+
+    def orientation(self):
+        return self._orientation
 
     def deserialize(self, avatar, root_dir):
         # Get name
@@ -190,5 +201,19 @@ class Avatar(object):
             print('Error: Avatar "{}" has invalid <border> tag: "{}"'
                   .format(self._name, border))
             return False
+
+        # Get orientation
+        try:
+            orientation = avatar.find('orientation').text
+            if orientation not in [
+                Orientation.HORIZONTAL.value,
+                Orientation.VERTICAL.value
+            ]:
+                print('Error: invalid orientation: {}'
+                      .format(orientation))
+                return False
+            self._orientation = orientation
+        except AttributeError:
+            pass
 
         return True
