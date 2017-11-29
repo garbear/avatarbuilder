@@ -20,10 +20,13 @@ import os
 
 
 class AvatarRepo(object):
-    _REPO_FOLDER = 'download'
-
     def __init__(self, directory, repo):
-        self._directory = os.path.join(directory, AvatarRepo._REPO_FOLDER)
+        # Ensure directory exists
+        if not os.path.exists(directory):
+            print('Creating directory: "{}"'.format(directory))
+            os.makedirs(directory)
+
+        self._directory = self._get_repo_dir(directory, repo)
         self._repo = repo
         self._isvalid = False
 
@@ -32,6 +35,8 @@ class AvatarRepo(object):
 
     def clone(self):
         success = False
+
+        print('Cloning repo {}'.format(self._repo))
 
         try:
             git.Repo.clone_from(self._repo, self._directory)
@@ -45,7 +50,19 @@ class AvatarRepo(object):
             self._isvalid = True
             return True
 
+        self._isvalid = False
+        print('Failed to clone repo')
         return False
 
     def isvalid(self):
         return self._isvalid
+
+    @staticmethod
+    def _get_repo_dir(directory, repo):
+        name = os.path.basename(repo)
+
+        # Remove trailing '.git'
+        if name[-4:] == '.git':
+            name = name[:-4]
+
+        return os.path.join(directory, name)

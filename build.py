@@ -25,13 +25,8 @@ import sys
 _AVATAR_REPO = 'https://github.com/kodi-game/OpenGameArt.org.git'
 
 if __name__ == '__main__':
-    success = False
-
-    if len(sys.argv) >= 2:
-        directory = os.path.abspath(sys.argv[1])
-        builder = avatarbuilder.AvatarBuilder(directory, _AVATAR_REPO)
-        success = builder.build()
-    else:
-        print('Call with build folder: {} <folder>'.format(sys.argv[0]))
+    directory = os.path.dirname(os.path.realpath(__file__))
+    builder = avatarbuilder.AvatarBuilder(directory, _AVATAR_REPO)
+    success = builder.build()
 
     sys.exit(0 if success else 1)

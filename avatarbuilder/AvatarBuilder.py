@@ -23,24 +23,52 @@ import os
 
 
 class AvatarBuilder(object):
+    _REPO_FOLDER = 'download'
+    _BUILD_FOLDER = 'build'
+
     def __init__(self, directory, repo_url):
         self._directory = directory
         self._repo_url = repo_url
 
     def build(self):
-        repo = AvatarRepo(self._directory, self._repo_url)
+        # Build repo
+        repo_dir = os.path.join(self._directory, AvatarBuilder._REPO_FOLDER)
+        repo = self._build_repo(self._repo_url, repo_dir)
+        if not repo:
+            return False
+
+        # Get avatars
+        avatars = self._get_avatars(repo.getpath())
+
+        # Generate frames
+        save_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
+        save_avatars = self._generate_frames(avatars, save_path)
+
+        # Save avatars.xml
+        avatars_xml_path = os.path.join(save_path, AvatarXml.FILE_NAME)
+        AvatarXml.save_avatars(save_avatars, avatars_xml_path)
+
+        print('Finished building')
+
+        return True
+
+    @staticmethod
+    def _build_repo(repo_url, repo_dir):
+        repo = AvatarRepo(repo_dir, repo_url)
 
         if not repo.isvalid():
-            print('Cloning repo {}'.format(self._repo_url))
             repo.clone()
 
             if not repo.isvalid():
-                print('Failed to clone repo')
-                return False
+                return None
 
+        return repo
+
+    @staticmethod
+    def _get_avatars(path):
         avatars = []
 
-        for root, dirs, files in os.walk(repo.getpath()):
+        for root, dirs, files in os.walk(path):
             for file in files:
                 if file == AvatarXml.FILE_NAME:
                     avatars_xml_path = os.path.join(root, file)
@@ -48,7 +76,12 @@ class AvatarBuilder(object):
                     loaded_avatars = AvatarXml.load_avatars(avatars_xml_path)
                     avatars.extend(loaded_avatars)
 
+        return avatars
+
+    @staticmethod
+    def _generate_frames(avatars, save_path):
         save_avatars = []
+
         for avatar in avatars:
             image = AvatarImage.load_image(avatar.image())
             if image is None:
@@ -56,16 +89,13 @@ class AvatarBuilder(object):
                 continue
 
             # Generate path for avatar
-            avatar_path = os.path.join(self._directory, avatar.name())
+            avatar_path = os.path.join(save_path, avatar.name())
+
+            # Ensure path exists
             if not os.path.exists(avatar_path):
                 os.makedirs(avatar_path)
 
             if AvatarImage.generate_frames(image, avatar, avatar_path):
                 save_avatars.append(avatar)
 
-        avatars_xml_path = os.path.join(self._directory, AvatarXml.FILE_NAME)
-        AvatarXml.save_avatars(save_avatars, avatars_xml_path)
-
-        print('Finished building')
-
-        return True
+        return save_avatars
