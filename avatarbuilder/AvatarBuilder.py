@@ -91,6 +91,9 @@ class AvatarBuilder(object):
             # Generate path for avatar
             avatar_path = os.path.join(save_path, avatar.name())
 
+            # Replace spaces with underscores
+            avatar_path = avatar_path.replace(' ', '_')
+
             # Ensure path exists
             if not os.path.exists(avatar_path):
                 os.makedirs(avatar_path)
