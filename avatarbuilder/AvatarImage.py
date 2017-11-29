@@ -22,7 +22,7 @@ import os
 
 
 class AvatarImage(object):
-    FRAME_PATH = 'frames-{}x'  # {} - scaling factor
+    FRAME_PATH = 'frames-{0:02d}x'  # {} - scaling factor
 
     @staticmethod
     def load_image(image_path):
@@ -90,7 +90,7 @@ class AvatarImage(object):
                         os.makedirs(output_folder)
 
                     # Calculate filename
-                    filename = '{}.png'.format(index)
+                    filename = '{0:03d}.png'.format(index)
                     frame_path = os.path.join(output_folder, filename)
                     index += 1
 
