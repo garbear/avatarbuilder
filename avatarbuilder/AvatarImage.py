@@ -65,12 +65,17 @@ class AvatarImage(object):
                 # TODO: Skip frame if empty
                 # empty = not numpy.any(frame - alpha)
 
+                # Set alpha color to transparent
                 frame = AvatarImage._set_transparent(frame, alpha)
 
-                for scale in [1, 2, 4, 8, 16]:
-                    width = w * scale
-                    height = h * scale
+                # Calculate next filename
+                filename = '{0:03d}.png'.format(index)
+                index += 1
 
+                for scale in [1, 2, 4, 8, 16]:
+                    # Don't scale past 512px
+                    width = avatar.width() * scale
+                    height = avatar.height() * scale
                     if scale > 1 and (height > 512 or width > 512):
                         break
 
@@ -90,9 +95,7 @@ class AvatarImage(object):
                         os.makedirs(output_folder)
 
                     # Calculate filename
-                    filename = '{0:03d}.png'.format(index)
                     frame_path = os.path.join(output_folder, filename)
-                    index += 1
 
                     # Write image
                     cv2.imwrite(frame_path, scaled)
