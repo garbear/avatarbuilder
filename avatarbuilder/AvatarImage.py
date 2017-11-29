@@ -46,7 +46,7 @@ class AvatarImage(object):
         alpha = None
         for j in range(avatar.rows()):
             for i in range(avatar.columns()):
-                # Calcalate the crop coordinates
+                # Calculate the crop coordinates
                 x = avatar.offsetx() + avatar.border() + \
                     i * (avatar.width() + avatar.border())
                 y = avatar.offsety() + avatar.border() + \
