@@ -101,5 +101,16 @@ class AvatarImage(object):
 
     @staticmethod
     def _set_alpha(frame, alpha):
-        # TODO
-        return frame
+        new_frame = numpy.zeros((frame.shape[0], frame.shape[1], 4))
+        for i in range(frame.shape[0]):
+            for j in range(frame.shape[1]):
+                if any(frame[i][j] - alpha):
+                    if frame.shape[2] == 4:
+                        new_frame[i][j] = frame[i][j]
+                    else:
+                        new_frame[i][j] = [frame[i][j][0],
+                                           frame[i][j][1],
+                                           frame[i][j][2],
+                                           255]
+
+        return new_frame
