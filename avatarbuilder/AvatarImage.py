@@ -27,6 +27,7 @@ class AvatarImage(object):
     FRAME_PATH = '{0:02d}x'  # {0} - scaling factor
     FILE_NAME = '{0:03d}.png'  # {0} - frame index
     ASSETS_FOLDER = 'assets'
+    ACTION_ANIMATION = '{0}.gif'  # {0} - action name
 
     @staticmethod
     def load_image(image_path):
@@ -43,6 +44,7 @@ class AvatarImage(object):
     def generate_frames(image, avatar, path):
         sheet = avatar.sheet()
 
+        # Extract frames from image
         frames = AvatarImage._get_frames(image, sheet)
         if not frames:
             print('Error: Avatar "{}" - no frames extracted'
@@ -55,22 +57,24 @@ class AvatarImage(object):
             AvatarImage._generate_scaled_frames(path, frame, index)
 
         # Generate actions
-        for action in avatar.actions():
-            action_name = action.name()
-            filename_index = 1
-            for frame_index in action.frames():
-                frame = frames[frame_index]
-                AvatarImage._generate_action_frame(path, frame, action_name,
-                                                   filename_index)
-                filename_index += 1
+        actions = AvatarImage._get_actions(avatar.actions(), frames)
+        for action_name in actions.keys():
+            action_frames = actions[action_name]
+            AvatarImage._generate_action(path, action_name, action_frames)
 
         # Generate assets
         assets = avatar.assets()
-        if assets:
+        if assets is not None:
             filename_index = 1
             for frame_index in assets.frames():
-                frame = frames[frame_index]
-                AvatarImage._generate_asset(path, frame, filename_index)
+                if frame_index not in frames:
+                    print('Error: Invalid asset frame index: {}'
+                          .format(frame_index))
+                    print('Valid indices are: {}'.format(frames.keys()))
+                    return {}
+
+                asset_frame = frames[frame_index]
+                AvatarImage._generate_asset(path, asset_frame, filename_index)
                 filename_index += 1
 
         return True
@@ -179,6 +183,28 @@ class AvatarImage(object):
         return new_frame
 
     @staticmethod
+    def _get_actions(actions, frames):
+        ret = {}
+
+        for action in actions:
+            action_name = action.name()
+            action_frames = []
+
+            for frame_index in action.frames():
+                if frame_index not in frames:
+                    print('Error: Invalid action frame index: {}'.format(frame_index))
+                    print('Valid indices are: {}'.format(frames.keys()))
+                    return {}
+
+                frame = frames[frame_index]
+                action_frames.append(frame)
+
+            if action_frames:
+                ret[action_name] = action_frames
+
+        return ret
+
+    @staticmethod
     def _generate_scaled_frames(path, frame, index):
         for scale in [1, 2, 4, 8, 16]:
             width, height = frame.shape[:2]
@@ -202,12 +228,22 @@ class AvatarImage(object):
             AvatarImage._generate_frame(output_folder, frame, index)
 
     @staticmethod
-    def _generate_action_frame(path, frame, action_name, index):
+    def _generate_action(path, action_name, frames):
         # Calculate output folder
         output_folder = os.path.join(path, action_name)
 
-        # Generate frame
-        AvatarImage._generate_frame(output_folder, frame, index)
+        # Ensure output folder exists
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Generate frames
+        frame_index = 1
+        for frame in frames:
+            AvatarImage._generate_frame(output_folder, frame, frame_index)
+            frame_index += 1
+
+        # Generate .gif
+        AvatarImage._generate_gif(output_folder, frames, action_name)
 
     @staticmethod
     def _generate_asset(path, frame, index):
@@ -219,13 +255,18 @@ class AvatarImage(object):
 
     @staticmethod
     def _generate_frame(output_folder, frame, index):
-        # Ensure output folder exists
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
         # Calculate filename
         filename = AvatarImage.FILE_NAME.format(index)
         frame_path = os.path.join(output_folder, filename)
 
         # Write image
         cv2.imwrite(frame_path, frame)
+
+    @staticmethod
+    def _generate_gif(output_folder, frame, action_name):
+        # Calculate filename
+        filename = AvatarImage.ACTION_ANIMATION.format(action_name)
+        gif_path = os.path.join(output_folder, filename)
+
+        # Write image (TODO)
+        print('Generating "{}"'.format(gif_path))
