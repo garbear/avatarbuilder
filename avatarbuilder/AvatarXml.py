@@ -41,6 +41,10 @@ class AvatarXml(object):
     XML_ELM_ROWS = 'rows'
     XML_ELM_BORDER = 'border'
     XML_ELM_ORIENTATION = 'orientation'
+    XML_ELM_ACTIONS = 'actions'
+    XML_ELM_ACTION = 'action'
+    XML_ELM_FRAME = 'frame'
+    XML_ELM_ASSETS = 'assets'
 
     XML_ATTR_NAME = 'name'
     XML_ATTR_OFFSET = 'offset'

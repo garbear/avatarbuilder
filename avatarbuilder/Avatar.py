@@ -15,6 +15,8 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+from avatarbuilder.AvatarAction import AvatarAction
+from avatarbuilder.AvatarAssets import AvatarAssets
 from avatarbuilder.AvatarSheet import AvatarSheet
 
 import os
@@ -26,6 +28,8 @@ class Avatar(object):
         self._name = ''
         self._info = info
         self._sheet = None
+        self._actions = []
+        self._assets = None
 
     def name(self):
         return self._name
@@ -53,6 +57,26 @@ class Avatar(object):
         self._sheet = AvatarSheet(root_dir)
         if not self._sheet.deserialize(sheet_element):
             return False
+
+        # Deserialize actions
+        actions_elm = avatar.find(AvatarXml.XML_ELM_ACTIONS)
+        if not actions_elm:
+            print('Error: Avatar "{}" is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_ACTIONS))
+            return False
+
+        for action_elm in actions_elm.findall(AvatarXml.XML_ELM_ACTION):
+            action = AvatarAction()
+            if not action.deserialize(action_elm):
+                return False
+            self._actions.append(action)
+
+        # Deserialize assets
+        assets_elm = avatar.find(AvatarXml.XML_ELM_ASSETS)
+        if assets_elm:
+            assets = AvatarAssets()
+            if assets.deserialize(assets_elm):
+                self._assets = assets
 
         return True
 
