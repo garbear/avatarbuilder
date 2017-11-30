@@ -45,6 +45,8 @@ class AvatarBuilder(object):
         # Generate frames
         build_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
         frames_path = os.path.join(build_path, AvatarBuilder._AVATARS_FOLDER)
+        if not os.path.exists(frames_path):
+            os.makedirs(frames_path)
         save_avatars = self._generate_frames(avatars, frames_path)
 
         # Save avatars.xml
