@@ -110,7 +110,7 @@ class AvatarBuilder(object):
             if not os.path.exists(avatar_path):
                 os.makedirs(avatar_path)
 
-            if AvatarImage.generate_frames(image, sheet, avatar_path):
+            if AvatarImage.generate_frames(image, avatar, avatar_path):
                 save_avatars.append(avatar)
 
         return save_avatars

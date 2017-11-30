@@ -24,7 +24,7 @@ import os
 
 
 class AvatarImage(object):
-    FRAME_PATH = 'frames-{0:02d}x'  # {} - scaling factor
+    FRAME_PATH = 'frames-{0:02d}x'  # {0} - scaling factor
 
     @staticmethod
     def load_image(image_path):
@@ -38,8 +38,52 @@ class AvatarImage(object):
         return image
 
     @staticmethod
-    def generate_frames(image, sheet, path):
-        image_width, image_height = image.shape[:2]
+    def generate_frames(image, avatar, path):
+        sheet = avatar.sheet()
+
+        frames = AvatarImage._get_frames(image, sheet)
+        if not frames:
+            print('Error: Avatar "{}" - no frames extracted'
+                  .format(avatar.name()))
+            return False
+
+        for index in frames.keys():
+            frame = frames[index]
+
+            for scale in [1, 2, 4, 8, 16]:
+                # Don't scale past 512px
+                width = sheet.width() * scale
+                height = sheet.height() * scale
+                if scale > 1 and (height > 512 or width > 512):
+                    break
+
+                # Scale frame
+                if scale == 1:
+                    scaled = frame
+                else:
+                    scaled = cv2.resize(frame, None, fx=scale, fy=scale,
+                                        interpolation=cv2.INTER_NEAREST)
+
+                # Calculate output folder
+                folder_name = AvatarImage.FRAME_PATH.format(scale)
+                output_folder = os.path.join(path, folder_name)
+
+                # Ensure output folder exists
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+
+                # Calculate filename
+                filename = '{0:03d}.png'.format(index)
+                frame_path = os.path.join(output_folder, filename)
+
+                # Write image
+                cv2.imwrite(frame_path, scaled)
+
+        return True
+
+    @staticmethod
+    def _get_frames(image, sheet):
+        frames = {}
 
         for j in range(sheet.rows()):
             for i in range(sheet.columns()):
@@ -49,64 +93,50 @@ class AvatarImage(object):
                 else:
                     index = i * sheet.columns() + j + 1
 
-                # Calculate the crop coordinates
-                x = sheet.offsetx() + sheet.border() + \
-                    i * (sheet.width() + sheet.border())
-                y = sheet.offsety() + sheet.border() + \
-                    j * (sheet.height() + sheet.border())
-                w = sheet.width()
-                h = sheet.height()
+                frame = AvatarImage._get_frame(image, sheet, i, j)
 
-                # Verify we have a complete frame
-                if y + h >= image_height or x + w >= image_width:
-                    continue
+                if frame is not None:
+                    frame = AvatarImage._subtract_background(frame)
 
-                # Crop the image
-                frame = AvatarImage._crop(image, x, y, w, h)
+                    if frame is not None:
+                        frames[index] = frame
 
-                # Detect the alpha value
-                alpha = AvatarImage._get_alpha(frame)
+        return frames
 
-                # Skip frame if empty
-                if AvatarImage._is_empty(frame, alpha):
-                    continue
+    @staticmethod
+    def _get_frame(image, sheet, row, col):
+        image_width, image_height = image.shape[:2]
 
-                # Set alpha color to transparent
-                frame = AvatarImage._set_transparent(frame, alpha)
+        # Calculate the crop coordinates
+        x = sheet.offsetx() + sheet.border() + \
+            row * (sheet.width() + sheet.border())
+        y = sheet.offsety() + sheet.border() + \
+            col * (sheet.height() + sheet.border())
+        w = sheet.width()
+        h = sheet.height()
 
-                # Calculate next filename
-                filename = '{0:03d}.png'.format(index)
-                index += 1
+        # Verify we have a complete frame
+        if y + h >= image_height or x + w >= image_width:
+            return None
 
-                for scale in [1, 2, 4, 8, 16]:
-                    # Don't scale past 512px
-                    width = sheet.width() * scale
-                    height = sheet.height() * scale
-                    if scale > 1 and (height > 512 or width > 512):
-                        break
+        # Crop the image
+        frame = AvatarImage._crop(image, x, y, w, h)
 
-                    # Scale frame
-                    if scale == 1:
-                        scaled = frame
-                    else:
-                        scaled = cv2.resize(frame, None, fx=scale, fy=scale,
-                                            interpolation=cv2.INTER_NEAREST)
+        return frame
 
-                    # Calculate output folder
-                    folder_name = AvatarImage.FRAME_PATH.format(scale)
-                    output_folder = os.path.join(path, folder_name)
+    @staticmethod
+    def _subtract_background(frame):
+        # Detect the alpha value
+        alpha = AvatarImage._get_alpha(frame)
 
-                    # Ensure output folder exists
-                    if not os.path.exists(output_folder):
-                        os.makedirs(output_folder)
+        # Skip frame if empty
+        if AvatarImage._is_empty(frame, alpha):
+            return None
 
-                    # Calculate filename
-                    frame_path = os.path.join(output_folder, filename)
+        # Set alpha color to transparent
+        frame = AvatarImage._set_transparent(frame, alpha)
 
-                    # Write image
-                    cv2.imwrite(frame_path, scaled)
-
-        return True
+        return frame
 
     @staticmethod
     def _crop(frame, x, y, w, h):
