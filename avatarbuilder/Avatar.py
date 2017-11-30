@@ -34,8 +34,17 @@ class Avatar(object):
     def name(self):
         return self._name
 
+    def info(self):
+        return self._info
+
     def sheet(self):
         return self._sheet
+
+    def actions(self):
+        return self._actions
+
+    def assets(self):
+        return self._assets
 
     def deserialize(self, avatar, root_dir):
         from avatarbuilder.AvatarXml import AvatarXml

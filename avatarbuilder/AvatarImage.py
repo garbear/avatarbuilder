@@ -24,7 +24,8 @@ import os
 
 
 class AvatarImage(object):
-    FRAME_PATH = 'frames-{0:02d}x'  # {0} - scaling factor
+    FRAME_PATH = '{0:02d}x'  # {0} - scaling factor
+    FILE_NAME = '{0:03d}.png'  # {0} - frame index
 
     @staticmethod
     def load_image(image_path):
@@ -49,35 +50,17 @@ class AvatarImage(object):
 
         for index in frames.keys():
             frame = frames[index]
+            AvatarImage._generate_scaled_frames(path, frame, index)
 
-            for scale in [1, 2, 4, 8, 16]:
-                # Don't scale past 512px
-                width = sheet.width() * scale
-                height = sheet.height() * scale
-                if scale > 1 and (height > 512 or width > 512):
-                    break
+        for action in avatar.actions():
+            action_name = action.name()
 
-                # Scale frame
-                if scale == 1:
-                    scaled = frame
-                else:
-                    scaled = cv2.resize(frame, None, fx=scale, fy=scale,
-                                        interpolation=cv2.INTER_NEAREST)
-
-                # Calculate output folder
-                folder_name = AvatarImage.FRAME_PATH.format(scale)
-                output_folder = os.path.join(path, folder_name)
-
-                # Ensure output folder exists
-                if not os.path.exists(output_folder):
-                    os.makedirs(output_folder)
-
-                # Calculate filename
-                filename = '{0:03d}.png'.format(index)
-                frame_path = os.path.join(output_folder, filename)
-
-                # Write image
-                cv2.imwrite(frame_path, scaled)
+            filename_index = 1
+            for frame_index in action.frames():
+                frame = frames[frame_index]
+                AvatarImage._generate_action_frame(path, frame, action_name,
+                                                   filename_index)
+                filename_index += 1
 
         return True
 
@@ -183,3 +166,50 @@ class AvatarImage(object):
                                            255]
 
         return new_frame
+
+    @staticmethod
+    def _generate_scaled_frames(path, frame, index):
+        for scale in [1, 2, 4, 8, 16]:
+            width, height = frame.shape[:2]
+
+            # Don't scale past 512px
+            if scale > 1 and (width * scale > 512 or height * scale > 512):
+                break
+
+            # Scale frame
+            if scale == 1:
+                scaled = frame
+            else:
+                scaled = cv2.resize(frame, None, fx=scale, fy=scale,
+                                    interpolation=cv2.INTER_NEAREST)
+
+            # Calculate output folder
+            folder_name = AvatarImage.FRAME_PATH.format(scale)
+            output_folder = os.path.join(path, folder_name)
+
+            # Ensure output folder exists
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
+            # Calculate filename
+            filename = AvatarImage.FILE_NAME.format(index)
+            frame_path = os.path.join(output_folder, filename)
+
+            # Write image
+            cv2.imwrite(frame_path, scaled)
+
+    @staticmethod
+    def _generate_action_frame(path, frame, action_name, index):
+        # Calculate output folder
+        output_folder = os.path.join(path, action_name)
+
+        # Ensure output folder exists
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        # Calculate filename
+        filename = AvatarImage.FILE_NAME.format(index)
+        frame_path = os.path.join(output_folder, filename)
+
+        # Write image
+        cv2.imwrite(frame_path, frame)
