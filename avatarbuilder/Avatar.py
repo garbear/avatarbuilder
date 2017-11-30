@@ -55,7 +55,7 @@ class Avatar(object):
             return False
 
         self._sheet = AvatarSheet(root_dir)
-        if not self._sheet.deserialize(sheet_element):
+        if not self._sheet.deserialize(sheet_element, self._name):
             return False
 
         # Deserialize actions
@@ -67,7 +67,7 @@ class Avatar(object):
 
         for action_elm in actions_elm.findall(AvatarXml.XML_ELM_ACTION):
             action = AvatarAction()
-            if not action.deserialize(action_elm):
+            if not action.deserialize(action_elm, self._name):
                 return False
             self._actions.append(action)
 
@@ -75,7 +75,7 @@ class Avatar(object):
         assets_elm = avatar.find(AvatarXml.XML_ELM_ASSETS)
         if assets_elm:
             assets = AvatarAssets()
-            if assets.deserialize(assets_elm):
+            if assets.deserialize(assets_elm, self._name):
                 self._assets = assets
 
         return True

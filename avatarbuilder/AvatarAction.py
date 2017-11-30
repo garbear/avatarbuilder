@@ -29,25 +29,26 @@ class AvatarAction(object):
     def frames(self):
         return self._frames
 
-    def deserialize(self, action):
+    def deserialize(self, action, avatar_name):
         from avatarbuilder.AvatarXml import AvatarXml
 
         # Get name
         self._name = action.get(AvatarXml.XML_ATTR_NAME)
         if not self._name:
-            print('Error: <{}> tag is missing "{}" attribute'
-                  .format(AvatarXml.XML_ELM_ACTION, AvatarXml.XML_ATTR_NAME))
+            print('Error: Avatar "{}" - <{}> tag is missing "{}" attribute'
+                  .format(avatar_name, AvatarXml.XML_ELM_ACTION,
+                          AvatarXml.XML_ATTR_NAME))
             return False
 
         # Get frames
         for frame_elm in action.findall(AvatarXml.XML_ELM_FRAME):
-            frame = AvatarFrame.deserialize(frame_elm)
+            frame = AvatarFrame.deserialize(frame_elm, avatar_name)
             if frame > 0:
                 self._frames.append(frame)
 
         if not self._frames:
-            print('Error: <{}> tag contains no valid frames'
-                  .format(AvatarXml.XML_ELM_ACTION))
+            print('Error: Avatar "{}" - <{}> tag contains no valid frames'
+                  .format(avatar_name, AvatarXml.XML_ELM_ACTION))
             return False
 
         return True

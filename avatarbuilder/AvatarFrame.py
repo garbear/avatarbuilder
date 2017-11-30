@@ -18,15 +18,15 @@
 
 class AvatarFrame(object):
     @staticmethod
-    def deserialize(frame_elm):
+    def deserialize(frame_elm, avatar_name):
         from avatarbuilder.AvatarXml import AvatarXml
 
         frame = -1
 
         try:
             frame = int(frame_elm.text)
-        except ValueError:
-            print('Error: <{}> tag is not an integer: "{}"'
-                  .format(AvatarXml.XML_ELM_FRAME, frame_elm.text))
+        except TypeError:
+            print('Error: Avatar "{}" - <{}> tag is not an integer: "{}"'
+                  .format(avatar_name, AvatarXml.XML_ELM_FRAME, frame_elm.text))
 
         return frame

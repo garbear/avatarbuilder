@@ -97,7 +97,8 @@ class AvatarBuilder(object):
 
             image = AvatarImage.load_image(sheet.image())
             if image is None:
-                print('Failed to load image: "{}"'.format(sheet.image()))
+                print('Error: Avatar "{}" - Failed to load image: "{}"'
+                      .format(avatar.name(), sheet.image()))
                 continue
 
             # Generate path for avatar

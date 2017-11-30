@@ -25,18 +25,18 @@ class AvatarAssets(object):
     def frames(self):
         return self._frames
 
-    def deserialize(self, action):
+    def deserialize(self, action, avatar_name):
         from avatarbuilder.AvatarXml import AvatarXml
 
         # Get frames
         for frame_elm in action.findall(AvatarXml.XML_ELM_FRAME):
-            frame = AvatarFrame.deserialize(frame_elm)
+            frame = AvatarFrame.deserialize(frame_elm, avatar_name)
             if frame > 0:
                 self._frames.append(frame)
 
         if not self._frames:
-            print('Error: <{}> tag contains no valid frames'
-                  .format(AvatarXml.XML_ELM_ASSETS))
+            print('Error: Avatar "{}" - <{}> tag contains no valid frames'
+                  .format(avatar_name, AvatarXml.XML_ELM_ASSETS))
             return False
 
         return True

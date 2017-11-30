@@ -75,7 +75,7 @@ class AvatarXml(object):
         ret = []
 
         # Check root tag
-        if avatars.tag != 'avatars':
+        if avatars.tag != AvatarXml.XML_ELM_ROOT:
             print('Error: Expected root <{}> tag, got <{}>'
                   .format(AvatarXml.XML_ELM_ROOT, avatars.tag))
             return ret
@@ -83,7 +83,8 @@ class AvatarXml(object):
         # Get common metadata
         info_element = avatars.find(AvatarXml.XML_ELM_INFO)
         if not info_element:
-            print('Error: <{}> tag not found'.format(AvatarXml.XML_ELM_INFO))
+            print('Error: {} - <{}> tag not found'
+                  .format(AvatarXml.FILE_NAME, AvatarXml.XML_ELM_INFO))
             return ret
 
         info = AvatarInfo()
