@@ -19,6 +19,7 @@ from avatarbuilder.AvatarSheet import Orientation
 
 import collections
 import cv2
+import imageio
 import numpy
 import os
 
@@ -168,7 +169,8 @@ class AvatarImage(object):
 
     @staticmethod
     def _set_transparent(frame, alpha):
-        new_frame = numpy.zeros((frame.shape[0], frame.shape[1], 4))
+        new_frame = numpy.zeros((frame.shape[0], frame.shape[1], 4),
+                                dtype=numpy.uint8)
         for i in range(frame.shape[0]):
             for j in range(frame.shape[1]):
                 if any(frame[i][j] - alpha):
@@ -263,10 +265,20 @@ class AvatarImage(object):
         cv2.imwrite(frame_path, frame)
 
     @staticmethod
-    def _generate_gif(output_folder, frame, action_name):
+    def _generate_gif(output_folder, frames, action_name):
         # Calculate filename
         filename = AvatarImage.ACTION_ANIMATION.format(action_name)
         gif_path = os.path.join(output_folder, filename)
 
-        # Write image (TODO)
-        print('Generating "{}"'.format(gif_path))
+        # Remove alpha channel
+        images = [AvatarImage._remove_alpha(frame) for frame in frames]
+        # Write image
+
+        print('Generating "{}"'.format(gif_path))  # TODO
+        durations = [1/12 for image in images]
+        kwargs = {'duration': durations}
+        imageio.mimwrite(gif_path, images, None, **kwargs)
+
+    @staticmethod
+    def _remove_alpha(frame):
+        return cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
