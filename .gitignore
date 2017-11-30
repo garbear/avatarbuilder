@@ -34,3 +34,7 @@ pip-log.txt
 
 # PyCharm
 .idea
+
+# macOS ignorables
+._*
+.DS_Store
