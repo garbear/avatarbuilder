@@ -41,7 +41,6 @@ class AvatarImage(object):
     def generate_frames(image, avatar, path):
         image_width, image_height = image.shape[:2]
 
-        alpha = None
         for j in range(avatar.rows()):
             for i in range(avatar.columns()):
                 # Calculate frame index
@@ -66,12 +65,10 @@ class AvatarImage(object):
                 frame = AvatarImage._crop(image, x, y, w, h)
 
                 # Detect the alpha value
-                if alpha is None:
-                    alpha = AvatarImage._get_alpha(frame)
+                alpha = AvatarImage._get_alpha(frame)
 
                 # Skip frame if empty
-                empty = not numpy.any(frame - alpha)
-                if empty:
+                if AvatarImage._is_empty(frame, alpha):
                     continue
 
                 # Set alpha color to transparent
@@ -136,6 +133,10 @@ class AvatarImage(object):
         data = collections.Counter(corner_strings)
         mode = data.most_common(1)[0][0]
         return corner_dict[mode]
+
+    @staticmethod
+    def _is_empty(frame, alpha):
+        return not numpy.any(frame - alpha)
 
     @staticmethod
     def _set_transparent(frame, alpha):
