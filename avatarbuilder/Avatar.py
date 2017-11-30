@@ -69,16 +69,12 @@ class Avatar(object):
 
         # Deserialize actions
         actions_elm = avatar.find(AvatarXml.XML_ELM_ACTIONS)
-        if not actions_elm:
-            print('Error: Avatar "{}" is missing <{}> tag'
-                  .format(self._name, AvatarXml.XML_ELM_ACTIONS))
-            return False
-
-        for action_elm in actions_elm.findall(AvatarXml.XML_ELM_ACTION):
-            action = AvatarAction()
-            if not action.deserialize(action_elm, self._name):
-                return False
-            self._actions.append(action)
+        if actions_elm:
+            for action_elm in actions_elm.findall(AvatarXml.XML_ELM_ACTION):
+                action = AvatarAction()
+                if not action.deserialize(action_elm, self._name):
+                    return False
+                self._actions.append(action)
 
         # Deserialize assets
         assets_elm = avatar.find(AvatarXml.XML_ELM_ASSETS)
