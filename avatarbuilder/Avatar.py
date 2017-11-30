@@ -15,70 +15,23 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
-import enum
+from avatarbuilder.AvatarSheet import AvatarSheet
+
 import os
-
-
-class Orientation(str, enum.Enum):
-    HORIZONTAL = 'horizontal'
-    VERTICAL = 'vertical'
+import xml.etree.ElementTree
 
 
 class Avatar(object):
     def __init__(self, info):
         self._name = ''
         self._info = info
-        self._image = ''
-        self._width = 0
-        self._height = 0
-        self._columns = 0
-        self._rows = 0
-        self._offsetx = 0
-        self._offsety = 0
-        self._border = 0
-        self._orientation = Orientation.HORIZONTAL
+        self._sheet = None
 
     def name(self):
         return self._name
 
-    def author(self):
-        return self._info.author()
-
-    def source(self):
-        return self._info.source()
-
-    def license(self):
-        return self._info.license()
-
-    def disclaimer(self):
-        return self._info.disclaimer()
-
-    def image(self):
-        return self._image
-
-    def width(self):
-        return self._width
-
-    def height(self):
-        return self._height
-
-    def columns(self):
-        return self._columns
-
-    def rows(self):
-        return self._rows
-
-    def offsetx(self):
-        return self._offsetx
-
-    def offsety(self):
-        return self._offsety
-
-    def border(self):
-        return self._border
-
-    def orientation(self):
-        return self._orientation
+    def sheet(self):
+        return self._sheet
 
     def deserialize(self, avatar, root_dir):
         # Get name
@@ -87,129 +40,44 @@ class Avatar(object):
             print('Error: Avatar is missing "name" attribute')
             return False
 
-        # Get image
-        self._image = avatar.get('image')
-        if not self._image:
-            print('Error: Avatar "{}" is missing "image" attribute'
-                  .format(self._name))
+        # Deserialize sheet
+        sheet_element = avatar.find('sheet')
+        if not sheet_element:
+            print('Error: Avatar "{}" is missing <sheet> tag')
             return False
 
-        # Prepend root path
-        self._image = os.path.join(root_dir, self._image)
-
-        # Sanitize image path
-        self._image = os.path.abspath(self._image)
-        if os.path.commonprefix([self._image, root_dir]) != root_dir:
-            from avatarbuilder.AvatarXml import AvatarXml
-            print()
-            print('------------------------------------------------------------'
-                  '--------------------')
-            print('WARNING: FILE TRIED TO ESCAPE DIRECTORY!!!')
-            print('File: {}'.format(AvatarXml.FILE_NAME))
-            print('Directory: "{}"'.format(root_dir))
-            print('Image path: "{}"'.format(self._image))
-            print('------------------------------------------------------------'
-                  '--------------------')
-            print()
-            raise Exception('UNSAFE FILE: avatars.xml - SEE LOG!!!')
-
-        # Get dimensions
-        try:
-            width = avatar.find('width').text
-            self._width = int(width)
-        except AttributeError:
-            print('Error: Avatar "{}" is missing <width> tag'
-                  .format(self._name))
+        self._sheet = AvatarSheet(root_dir)
+        if not self._sheet.deserialize(sheet_element):
             return False
-        except ValueError:
-            print('Error: Avatar "{}" has invalid <width> tag: "{}"'
-                  .format(self._name, width))
-            return False
-
-        # Get height
-        try:
-            height = avatar.find('height').text
-            self._height = int(height)
-        except AttributeError:
-            print('Error: Avatar {} is missing <height> tag'
-                  .format(self._name))
-            return False
-        except ValueError:
-            print('Error: Avatar "{}" has invalid <height> tag: "{}"'
-                  .format(self._name, height))
-            return False
-
-        # Get columns
-        columns_element = avatar.find('columns')
-        try:
-            columns_text = columns_element.text
-            self._columns = int(columns_text)
-        except AttributeError:
-            print('Error: Avatar {} is missing <columns> tag'
-                  .format(self._name))
-            return False
-        except ValueError:
-            print('Error: Avatar "{}" has invalid <columns> tag: "{}"'
-                  .format(self._name, columns_text))
-            return False
-
-        # Get rows
-        rows_element = avatar.find('rows')
-        try:
-            rows_text = rows_element.text
-            self._rows = int(rows_text)
-        except AttributeError:
-            print('Error: Avatar {} is missing <rows> tag'
-                  .format(self._name))
-            return False
-        except ValueError:
-            print('Error: Avatar "{}" has invalid <rows> tag: "{}"'
-                  .format(self._name, rows_text))
-            return False
-
-        # Get offsetx
-        offsetx_text = columns_element.get('offset')
-        if offsetx_text:
-            try:
-                self._offsetx = int(offsetx_text)
-            except ValueError:
-                print('Error: Avatar "{}" has invalid column offset: "{}"'
-                      .format(self._name, offsetx_text))
-                return False
-
-        # Get offsety
-        offsety_text = rows_element.get('offset')
-        if offsety_text:
-            try:
-                self._offsety = int(offsety_text)
-            except ValueError:
-                print('Error: Avatar "{}" has invalid row offset: "{}"'
-                      .format(self._name, offsety_text))
-                return False
-
-        # Get border
-        try:
-            border = avatar.find('border').text
-            self._border = int(border)
-        except AttributeError:
-            pass
-        except ValueError:
-            print('Error: Avatar "{}" has invalid <border> tag: "{}"'
-                  .format(self._name, border))
-            return False
-
-        # Get orientation
-        try:
-            orientation = avatar.find('orientation').text
-            if orientation not in [
-                Orientation.HORIZONTAL.value,
-                Orientation.VERTICAL.value
-            ]:
-                print('Error: invalid orientation: {}'
-                      .format(orientation))
-                return False
-            self._orientation = orientation
-        except AttributeError:
-            pass
 
         return True
+
+    def serialize(self, avatar_xml, relpath):
+        # Serialize name
+        avatar_xml.set('name', self._name)
+
+        # Serialize frames (TODO)
+        relpath = os.path.join(relpath, '')  # Append trailing slash
+        common = os.path.commonprefix([relpath, self._sheet.image()])
+        image_path = self._sheet.image()[len(common):]
+        # avatar_xml.set('image', image_path)
+
+        # Serialize metadata
+        info = self._info
+        if info.author():
+            author = xml.etree.ElementTree.SubElement(avatar_xml, 'author')
+            author.text = info.author()
+
+        if info.source():
+            source = xml.etree.ElementTree.SubElement(avatar_xml, 'source')
+            source.text = info.source()
+
+        if info.license():
+            license_name = xml.etree.ElementTree.SubElement(avatar_xml,
+                                                            'license')
+            license_name.text = info.license()
+
+        if info.disclaimer():
+            disclaimer = xml.etree.ElementTree.SubElement(avatar_xml,
+                                                          'disclaimer')
+            disclaimer.text = info.disclaimer()

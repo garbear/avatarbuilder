@@ -15,7 +15,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
-from avatarbuilder.Avatar import Orientation
+from avatarbuilder.AvatarSheet import Orientation
 
 import collections
 import cv2
@@ -38,24 +38,24 @@ class AvatarImage(object):
         return image
 
     @staticmethod
-    def generate_frames(image, avatar, path):
+    def generate_frames(image, sheet, path):
         image_width, image_height = image.shape[:2]
 
-        for j in range(avatar.rows()):
-            for i in range(avatar.columns()):
+        for j in range(sheet.rows()):
+            for i in range(sheet.columns()):
                 # Calculate frame index
-                if avatar.orientation() == Orientation.HORIZONTAL:
-                    index = j * avatar.rows() + i + 1
+                if sheet.orientation() == Orientation.HORIZONTAL:
+                    index = j * sheet.rows() + i + 1
                 else:
-                    index = i * avatar.columns() + j + 1
+                    index = i * sheet.columns() + j + 1
 
                 # Calculate the crop coordinates
-                x = avatar.offsetx() + avatar.border() + \
-                    i * (avatar.width() + avatar.border())
-                y = avatar.offsety() + avatar.border() + \
-                    j * (avatar.height() + avatar.border())
-                w = avatar.width()
-                h = avatar.height()
+                x = sheet.offsetx() + sheet.border() + \
+                    i * (sheet.width() + sheet.border())
+                y = sheet.offsety() + sheet.border() + \
+                    j * (sheet.height() + sheet.border())
+                w = sheet.width()
+                h = sheet.height()
 
                 # Verify we have a complete frame
                 if y + h >= image_height or x + w >= image_width:
@@ -80,8 +80,8 @@ class AvatarImage(object):
 
                 for scale in [1, 2, 4, 8, 16]:
                     # Don't scale past 512px
-                    width = avatar.width() * scale
-                    height = avatar.height() * scale
+                    width = sheet.width() * scale
+                    height = sheet.height() * scale
                     if scale > 1 and (height > 512 or width > 512):
                         break
 

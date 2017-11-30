@@ -89,9 +89,15 @@ class AvatarBuilder(object):
         save_avatars = []
 
         for avatar in avatars:
-            image = AvatarImage.load_image(avatar.image())
+            sheet = avatar.sheet()
+
+            # Sanity check
+            if not sheet:
+                continue
+
+            image = AvatarImage.load_image(sheet.image())
             if image is None:
-                print('Failed to load image: "{}"'.format(avatar.image()))
+                print('Failed to load image: "{}"'.format(sheet.image()))
                 continue
 
             # Generate path for avatar
@@ -104,7 +110,7 @@ class AvatarBuilder(object):
             if not os.path.exists(avatar_path):
                 os.makedirs(avatar_path)
 
-            if AvatarImage.generate_frames(image, avatar, avatar_path):
+            if AvatarImage.generate_frames(image, sheet, avatar_path):
                 save_avatars.append(avatar)
 
         return save_avatars
