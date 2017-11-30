@@ -69,8 +69,10 @@ class AvatarImage(object):
                 if alpha is None:
                     alpha = AvatarImage._get_alpha(frame)
 
-                # TODO: Skip frame if empty
-                # empty = not numpy.any(frame - alpha)
+                # Skip frame if empty
+                empty = not numpy.any(frame - alpha)
+                if empty:
+                    continue
 
                 # Set alpha color to transparent
                 frame = AvatarImage._set_transparent(frame, alpha)
