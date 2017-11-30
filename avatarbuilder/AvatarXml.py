@@ -26,6 +26,25 @@ import xml.etree.ElementTree
 class AvatarXml(object):
     FILE_NAME = 'avatars.xml'
 
+    XML_ELM_ROOT = 'avatars'
+    XML_ELM_INFO = 'info'
+    XML_ELM_AUTHOR = 'author'
+    XML_ELM_SOURCE = 'source'
+    XML_ELM_LICENSE = 'license'
+    XML_ELM_DISCLAIMER = 'disclaimer'
+    XML_ELM_AVATAR = 'avatar'
+    XML_ELM_SHEET = 'sheet'
+    XML_ELM_IMAGE = 'image'
+    XML_ELM_WIDTH = 'width'
+    XML_ELM_HEIGHT = 'height'
+    XML_ELM_COLUMNS = 'columns'
+    XML_ELM_ROWS = 'rows'
+    XML_ELM_BORDER = 'border'
+    XML_ELM_ORIENTATION = 'orientation'
+
+    XML_ATTR_NAME = 'name'
+    XML_ATTR_OFFSET = 'offset'
+
     @staticmethod
     def load_avatars(avatars_xml_path):
         avatars = []
@@ -53,14 +72,14 @@ class AvatarXml(object):
 
         # Check root tag
         if avatars.tag != 'avatars':
-            print('Error: Expected root <avatars> tag, got <{}>'
-                  .format(avatars.tag))
+            print('Error: Expected root <{}> tag, got <{}>'
+                  .format(AvatarXml.XML_ELM_ROOT, avatars.tag))
             return ret
 
         # Get common metadata
-        info_element = avatars.find('info')
+        info_element = avatars.find(AvatarXml.XML_ELM_INFO)
         if not info_element:
-            print('Error: <info> tag not found')
+            print('Error: <{}> tag not found'.format(AvatarXml.XML_ELM_INFO))
             return ret
 
         info = AvatarInfo()
@@ -68,7 +87,7 @@ class AvatarXml(object):
             return ret
 
         # Scan for avatars
-        for avatar_xml in avatars.findall('avatar'):
+        for avatar_xml in avatars.findall(AvatarXml.XML_ELM_AVATAR):
             avatar = Avatar(info)
             if avatar.deserialize(avatar_xml, root_dir):
                 ret.append(avatar)
@@ -79,9 +98,10 @@ class AvatarXml(object):
     def save_avatars(avatars, avatars_xml_path):
         print('Saving {} avatars to {}'.format(len(avatars), avatars_xml_path))
         relpath = os.path.dirname(avatars_xml_path)
-        avatars_xml = xml.etree.ElementTree.Element('avatars')
+        avatars_xml = xml.etree.ElementTree.Element(AvatarXml.XML_ELM_ROOT)
         for avatar in avatars:
-            avatar_xml = xml.etree.ElementTree.SubElement(avatars_xml, 'avatar')
+            tag = AvatarXml.XML_ELM_AVATAR
+            avatar_xml = xml.etree.ElementTree.SubElement(avatars_xml, tag)
             avatar.serialize(avatar_xml, relpath)
 
         dom = xml.dom.minidom.parseString(

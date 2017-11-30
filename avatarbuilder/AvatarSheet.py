@@ -65,12 +65,14 @@ class AvatarSheet(object):
         return self._orientation
 
     def deserialize(self, sheet):
+        from avatarbuilder.AvatarXml import AvatarXml
+
         # Get image
         try:
-            image = sheet.find('image').text
+            image = sheet.find(AvatarXml.XML_ELM_IMAGE).text
         except AttributeError:
-            print('Error: Avatar "{}" is missing <image> tag'
-                  .format(self._name))
+            print('Error: Avatar "{}" sheet info is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_IMAGE))
             return False
 
         # Prepend root path
@@ -79,7 +81,6 @@ class AvatarSheet(object):
         # Sanitize image path
         self._image = os.path.abspath(self._image)
         if not self._is_valid_path(self._root_dir, self._image):
-            from avatarbuilder.AvatarXml import AvatarXml
             print()
             print('------------------------------------------------------------'
                   '--------------------')
@@ -94,60 +95,60 @@ class AvatarSheet(object):
 
         # Get width
         try:
-            width = sheet.find('width').text
+            width = sheet.find(AvatarXml.XML_ELM_WIDTH).text
             self._width = int(width)
         except AttributeError:
-            print('Error: Avatar "{}" is missing <width> tag'
-                  .format(self._name))
+            print('Error: Avatar "{}" sheet info is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_WIDTH))
             return False
         except ValueError:
-            print('Error: Avatar "{}" has invalid <width> tag: "{}"'
-                  .format(self._name, width))
+            print('Error: Avatar "{}" sheet info has invalid <{}> tag: "{}"'
+                  .format(self._name, AvatarXml.XML_ELM_WIDTH, width))
             return False
 
         # Get height
         try:
-            height = sheet.find('height').text
+            height = sheet.find(AvatarXml.XML_ELM_HEIGHT).text
             self._height = int(height)
         except AttributeError:
-            print('Error: Avatar {} is missing <height> tag'
-                  .format(self._name))
+            print('Error: Avatar "{}" sheet info is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_HEIGHT))
             return False
         except ValueError:
-            print('Error: Avatar "{}" has invalid <height> tag: "{}"'
-                  .format(self._name, height))
+            print('Error: Avatar "{}" sheet info has invalid <{}> tag: "{}"'
+                  .format(self._name, AvatarXml.XML_ELM_HEIGHT, height))
             return False
 
         # Get columns
-        columns_element = sheet.find('columns')
+        columns_element = sheet.find(AvatarXml.XML_ELM_COLUMNS)
         try:
             columns_text = columns_element.text
             self._columns = int(columns_text)
         except AttributeError:
-            print('Error: Avatar {} is missing <columns> tag'
-                  .format(self._name))
+            print('Error: Avatar "{}" sheet info is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_COLUMNS))
             return False
         except ValueError:
-            print('Error: Avatar "{}" has invalid <columns> tag: "{}"'
-                  .format(self._name, columns_text))
+            print('Error: Avatar "{}" sheet info has invalid <{}> tag: "{}"'
+                  .format(self._name, AvatarXml.XML_ELM_COLUMNS, columns_text))
             return False
 
         # Get rows
-        rows_element = sheet.find('rows')
+        rows_element = sheet.find(AvatarXml.XML_ELM_ROWS)
         try:
             rows_text = rows_element.text
             self._rows = int(rows_text)
         except AttributeError:
-            print('Error: Avatar {} is missing <rows> tag'
-                  .format(self._name))
+            print('Error: Avatar "{}" sheet info  is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_ROWS))
             return False
         except ValueError:
-            print('Error: Avatar "{}" has invalid <rows> tag: "{}"'
-                  .format(self._name, rows_text))
+            print('Error: Avatar "{}" sheet info has invalid <{}> tag: "{}"'
+                  .format(self._name, AvatarXml.XML_ELM_ROWS, rows_text))
             return False
 
         # Get offsetx
-        offsetx_text = columns_element.get('offset')
+        offsetx_text = columns_element.get(AvatarXml.XML_ATTR_OFFSET)
         if offsetx_text:
             try:
                 self._offsetx = int(offsetx_text)
@@ -157,7 +158,7 @@ class AvatarSheet(object):
                 return False
 
         # Get offsety
-        offsety_text = rows_element.get('offset')
+        offsety_text = rows_element.get(AvatarXml.XML_ATTR_OFFSET)
         if offsety_text:
             try:
                 self._offsety = int(offsety_text)
@@ -168,18 +169,18 @@ class AvatarSheet(object):
 
         # Get border
         try:
-            border = sheet.find('border').text
+            border = sheet.find(AvatarXml.XML_ELM_BORDER).text
             self._border = int(border)
         except AttributeError:
             pass
         except ValueError:
-            print('Error: Avatar "{}" has invalid <border> tag: "{}"'
-                  .format(self._name, border))
+            print('Error: Avatar "{}" has invalid <{}> tag: "{}"'
+                  .format(self._name, AvatarXml.XML_ELM_BORDER, border))
             return False
 
         # Get orientation
         try:
-            orientation = sheet.find('orientation').text
+            orientation = sheet.find(AvatarXml.XML_ELM_ORIENTATION).text
             if orientation not in [
                 Orientation.HORIZONTAL.value,
                 Orientation.VERTICAL.value

@@ -36,26 +36,31 @@ class AvatarInfo(object):
         return self._disclaimer
 
     def deserialize(self, info):
+        from avatarbuilder.AvatarXml import AvatarXml
+
         try:
-            self._author = info.find('author').text
+            self._author = info.find(AvatarXml.XML_ELM_AUTHOR).text
         except AttributeError:
-            print('Error: avatars.xml is missing <author> tag')
+            print('Error: avatars.xml is missing <{}> tag'
+                  .format(AvatarXml.XML_ELM_AUTHOR))
             return False
 
         try:
-            self._source = info.find('source').text
+            self._source = info.find(AvatarXml.XML_ELM_SOURCE).text
         except AttributeError:
-            print('Error: avatars.xml is missing <source> tag')
+            print('Error: avatars.xml is missing <{}> tag'
+                  .format(AvatarXml.XML_ELM_SOURCE))
             return False
 
         try:
-            self._license = info.find('license').text
+            self._license = info.find(AvatarXml.XML_ELM_LICENSE).text
         except AttributeError:
-            print('Error: avatars.xml is missing <license> tag')
+            print('Error: avatars.xml is missing <{}> tag'
+                  .format(AvatarXml.XML_ELM_LICENSE))
             return False
 
         try:
-            self._disclaimer = info.find('disclaimer').text
+            self._disclaimer = info.find(AvatarXml.XML_ELM_DISCLAIMER).text
         except AttributeError:
             pass
 

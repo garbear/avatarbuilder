@@ -34,16 +34,20 @@ class Avatar(object):
         return self._sheet
 
     def deserialize(self, avatar, root_dir):
+        from avatarbuilder.AvatarXml import AvatarXml
+
         # Get name
-        self._name = avatar.get('name')
+        self._name = avatar.get(AvatarXml.XML_ATTR_NAME)
         if not self._name:
-            print('Error: Avatar is missing "name" attribute')
+            print('Error: Avatar is missing "{}" attribute'
+                  .format(AvatarXml.XML_ATTR_NAME))
             return False
 
         # Deserialize sheet
-        sheet_element = avatar.find('sheet')
+        sheet_element = avatar.find(AvatarXml.XML_ELM_SHEET)
         if not sheet_element:
-            print('Error: Avatar "{}" is missing <sheet> tag')
+            print('Error: Avatar "{}" is missing <{}> tag'
+                  .format(self._name, AvatarXml.XML_ELM_SHEET))
             return False
 
         self._sheet = AvatarSheet(root_dir)
@@ -53,8 +57,10 @@ class Avatar(object):
         return True
 
     def serialize(self, avatar_xml, relpath):
+        from avatarbuilder.AvatarXml import AvatarXml
+
         # Serialize name
-        avatar_xml.set('name', self._name)
+        avatar_xml.set(AvatarXml.XML_ATTR_NAME, self._name)
 
         # Serialize frames (TODO)
         relpath = os.path.join(relpath, '')  # Append trailing slash
@@ -65,19 +71,21 @@ class Avatar(object):
         # Serialize metadata
         info = self._info
         if info.author():
-            author = xml.etree.ElementTree.SubElement(avatar_xml, 'author')
+            author_tag = AvatarXml.XML_ELM_AUTHOR
+            author = xml.etree.ElementTree.SubElement(avatar_xml, author_tag)
             author.text = info.author()
 
         if info.source():
-            source = xml.etree.ElementTree.SubElement(avatar_xml, 'source')
+            source_tag = AvatarXml.XML_ELM_SOURCE
+            source = xml.etree.ElementTree.SubElement(avatar_xml, source_tag)
             source.text = info.source()
 
         if info.license():
-            license_name = xml.etree.ElementTree.SubElement(avatar_xml,
-                                                            'license')
+            tag = AvatarXml.XML_ELM_LICENSE
+            license_name = xml.etree.ElementTree.SubElement(avatar_xml, tag)
             license_name.text = info.license()
 
         if info.disclaimer():
-            disclaimer = xml.etree.ElementTree.SubElement(avatar_xml,
-                                                          'disclaimer')
+            tag = AvatarXml.XML_ELM_DISCLAIMER
+            disclaimer = xml.etree.ElementTree.SubElement(avatar_xml, tag)
             disclaimer.text = info.disclaimer()
