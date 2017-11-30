@@ -55,7 +55,8 @@ class AvatarImage(object):
         # Generate scaled frames
         for index in frames.keys():
             frame = frames[index]
-            AvatarImage._generate_scaled_frames(path, frame, index)
+            rgba_frame = frame[1]
+            AvatarImage._generate_scaled_frames(path, rgba_frame, index)
 
         # Generate actions
         actions = AvatarImage._get_actions(avatar.actions(), frames)
@@ -74,7 +75,7 @@ class AvatarImage(object):
                     print('Valid indices are: {}'.format(frames.keys()))
                     return {}
 
-                asset_frame = frames[frame_index]
+                asset_frame = frames[frame_index][1]  # RGBA frame
                 AvatarImage._generate_asset(path, asset_frame, filename_index)
                 filename_index += 1
 
@@ -95,10 +96,11 @@ class AvatarImage(object):
                 frame = AvatarImage._get_frame(image, sheet, i, j)
 
                 if frame is not None:
-                    frame = AvatarImage._subtract_background(frame)
+                    rgb = numpy.zeros((frame.shape[0], frame.shape[1], 3), dtype=numpy.uint8)
+                    rgba = numpy.zeros((frame.shape[0], frame.shape[1], 4), dtype=numpy.uint8)
 
-                    if frame is not None:
-                        frames[index] = frame
+                    if AvatarImage._subtract_background(frame, rgb, rgba):
+                        frames[index] = (rgb, rgba)
 
         return frames
 
@@ -124,18 +126,18 @@ class AvatarImage(object):
         return frame
 
     @staticmethod
-    def _subtract_background(frame):
+    def _subtract_background(frame, rgb, rgba):
         # Detect the alpha value
         alpha = AvatarImage._get_alpha(frame)
 
         # Skip frame if empty
         if AvatarImage._is_empty(frame, alpha):
-            return None
+            return False
 
         # Set alpha color to transparent
-        frame = AvatarImage._set_transparent(frame, alpha)
+        AvatarImage._set_transparent(frame, alpha, rgb, rgba)
 
-        return frame
+        return True
 
     @staticmethod
     def _crop(frame, x, y, w, h):
@@ -168,21 +170,22 @@ class AvatarImage(object):
         return not numpy.any(frame - alpha)
 
     @staticmethod
-    def _set_transparent(frame, alpha):
-        new_frame = numpy.zeros((frame.shape[0], frame.shape[1], 4),
-                                dtype=numpy.uint8)
+    def _set_transparent(frame, alpha, rgb, rgba):
         for i in range(frame.shape[0]):
             for j in range(frame.shape[1]):
-                if any(frame[i][j] - alpha):
-                    if frame.shape[2] == 4:
-                        new_frame[i][j] = frame[i][j]
+                if numpy.array_equal(frame[i, j], alpha):
+                    rgb[i, j] = numpy.array([0xFF, 0, 0xFF], dtype=numpy.uint8)  # Magenta
+                    rgba[i, j] = numpy.array([0xFF, 0xFF, 0xFF, 0], dtype=numpy.uint8)  # Transparent white
+                else:
+                    if frame.shape[2] == 3:
+                        rgb[i, j] = frame[i, j]
+                        rgba[i, j] = [frame[i, j, 0],
+                                      frame[i, j, 1],
+                                      frame[i, j, 2],
+                                      0xFF]
                     else:
-                        new_frame[i][j] = [frame[i][j][0],
-                                           frame[i][j][1],
-                                           frame[i][j][2],
-                                           255]
-
-        return new_frame
+                        rgb[i, j] = frame[i, j, :3]
+                        rgba[i, j] = frame[i, j]
 
     @staticmethod
     def _get_actions(actions, frames):
@@ -219,6 +222,9 @@ class AvatarImage(object):
             folder_name = AvatarImage.FRAME_PATH.format(scale)
             output_folder = os.path.join(path, folder_name)
 
+            if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+
             # Scale frame
             if scale == 1:
                 scaled = frame
@@ -227,7 +233,7 @@ class AvatarImage(object):
                                     interpolation=cv2.INTER_NEAREST)
 
             # Generate frame
-            AvatarImage._generate_frame(output_folder, frame, index)
+            AvatarImage._generate_frame(output_folder, scaled, index)
 
     @staticmethod
     def _generate_action(path, action_name, frames):
@@ -241,11 +247,13 @@ class AvatarImage(object):
         # Generate frames
         frame_index = 1
         for frame in frames:
-            AvatarImage._generate_frame(output_folder, frame, frame_index)
+            rgba_frame = frame[1]
+            AvatarImage._generate_frame(output_folder, rgba_frame, frame_index)
             frame_index += 1
 
         # Generate .gif
-        AvatarImage._generate_gif(output_folder, frames, action_name)
+        rgb_frames = [frame[0] for frame in frames]
+        AvatarImage._generate_gif(output_folder, rgb_frames, action_name)
 
     @staticmethod
     def _generate_asset(path, frame, index):
@@ -265,20 +273,12 @@ class AvatarImage(object):
         cv2.imwrite(frame_path, frame)
 
     @staticmethod
-    def _generate_gif(output_folder, frames, action_name):
+    def _generate_gif(output_folder, rgb_frames, action_name):
         # Calculate filename
         filename = AvatarImage.ACTION_ANIMATION.format(action_name)
         gif_path = os.path.join(output_folder, filename)
 
-        # Remove alpha channel
-        images = [AvatarImage._remove_alpha(frame) for frame in frames]
-        # Write image
-
         print('Generating "{}"'.format(gif_path))  # TODO
-        durations = [1/12 for image in images]
+        durations = [1/12 for rgb_frame in rgb_frames]
         kwargs = {'duration': durations}
-        imageio.mimwrite(gif_path, images, None, **kwargs)
-
-    @staticmethod
-    def _remove_alpha(frame):
-        return cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+        imageio.mimwrite(gif_path, rgb_frames, None, **kwargs)
