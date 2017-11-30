@@ -16,6 +16,7 @@
 #
 
 from avatarbuilder.Avatar import Avatar
+from avatarbuilder.AvatarInfo import AvatarInfo
 
 import os
 import xml.dom.minidom
@@ -50,33 +51,27 @@ class AvatarXml(object):
 
         ret = []
 
+        # Check root tag
         if avatars.tag != 'avatars':
             print('Error: Expected root <avatars> tag, got <{}>'
                   .format(avatars.tag))
-        else:
-            # Get common metadata
-            author = ''
-            source = ''
-            license_name = ''
-            disclaimer = ''
-            for child in avatars:
-                if child.tag == 'author':
-                    author = child.text
-                elif child.tag == 'source':
-                    source = child.text
-                elif child.tag == 'license':
-                    license_name = child.text
-                elif child.tag == 'disclaimer':
-                    disclaimer = child.text
+            return ret
 
-            # Scan for avatars
-            for avatar_xml in avatars.findall('avatar'):
-                avatar = Avatar(author=author,
-                                source=source,
-                                license_name=license_name,
-                                disclaimer=disclaimer)
-                if avatar.deserialize(avatar_xml, root_dir):
-                    ret.append(avatar)
+        # Get common metadata
+        info_element = avatars.find('info')
+        if not info_element:
+            print('Error: <info> tag not found')
+            return ret
+
+        info = AvatarInfo()
+        if not info.deserialize(info_element):
+            return ret
+
+        # Scan for avatars
+        for avatar_xml in avatars.findall('avatar'):
+            avatar = Avatar(info)
+            if avatar.deserialize(avatar_xml, root_dir):
+                ret.append(avatar)
 
         return ret
 

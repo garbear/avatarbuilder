@@ -25,13 +25,9 @@ class Orientation(str, enum.Enum):
 
 
 class Avatar(object):
-
-    def __init__(self, author, source, license_name, disclaimer):
+    def __init__(self, info):
         self._name = ''
-        self._author = author
-        self._source = source
-        self._license = license_name
-        self._disclaimer = disclaimer
+        self._info = info
         self._image = ''
         self._width = 0
         self._height = 0
@@ -46,16 +42,16 @@ class Avatar(object):
         return self._name
 
     def author(self):
-        return self._author
+        return self._info.author()
 
     def source(self):
-        return self._source
+        return self._info.source()
 
     def license(self):
-        return self._license
+        return self._info.license()
 
     def disclaimer(self):
-        return self._disclaimer
+        return self._info.disclaimer()
 
     def image(self):
         return self._image
