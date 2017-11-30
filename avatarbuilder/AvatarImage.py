@@ -26,6 +26,7 @@ import os
 class AvatarImage(object):
     FRAME_PATH = '{0:02d}x'  # {0} - scaling factor
     FILE_NAME = '{0:03d}.png'  # {0} - frame index
+    ASSETS_FOLDER = 'assets'
 
     @staticmethod
     def load_image(image_path):
@@ -48,18 +49,28 @@ class AvatarImage(object):
                   .format(avatar.name()))
             return False
 
+        # Generate scaled frames
         for index in frames.keys():
             frame = frames[index]
             AvatarImage._generate_scaled_frames(path, frame, index)
 
+        # Generate actions
         for action in avatar.actions():
             action_name = action.name()
-
             filename_index = 1
             for frame_index in action.frames():
                 frame = frames[frame_index]
                 AvatarImage._generate_action_frame(path, frame, action_name,
                                                    filename_index)
+                filename_index += 1
+
+        # Generate assets
+        assets = avatar.assets()
+        if assets:
+            filename_index = 1
+            for frame_index in assets.frames():
+                frame = frames[frame_index]
+                AvatarImage._generate_asset(path, frame, filename_index)
                 filename_index += 1
 
         return True
@@ -176,6 +187,10 @@ class AvatarImage(object):
             if scale > 1 and (width * scale > 512 or height * scale > 512):
                 break
 
+            # Calculate output folder
+            folder_name = AvatarImage.FRAME_PATH.format(scale)
+            output_folder = os.path.join(path, folder_name)
+
             # Scale frame
             if scale == 1:
                 scaled = frame
@@ -183,26 +198,27 @@ class AvatarImage(object):
                 scaled = cv2.resize(frame, None, fx=scale, fy=scale,
                                     interpolation=cv2.INTER_NEAREST)
 
-            # Calculate output folder
-            folder_name = AvatarImage.FRAME_PATH.format(scale)
-            output_folder = os.path.join(path, folder_name)
-
-            # Ensure output folder exists
-            if not os.path.exists(output_folder):
-                os.makedirs(output_folder)
-
-            # Calculate filename
-            filename = AvatarImage.FILE_NAME.format(index)
-            frame_path = os.path.join(output_folder, filename)
-
-            # Write image
-            cv2.imwrite(frame_path, scaled)
+            # Generate frame
+            AvatarImage._generate_frame(output_folder, frame, index)
 
     @staticmethod
     def _generate_action_frame(path, frame, action_name, index):
         # Calculate output folder
         output_folder = os.path.join(path, action_name)
 
+        # Generate frame
+        AvatarImage._generate_frame(output_folder, frame, index)
+
+    @staticmethod
+    def _generate_asset(path, frame, index):
+        # Calculate output folder
+        output_folder = os.path.join(path, AvatarImage.ASSETS_FOLDER)
+
+        # Generate frame
+        AvatarImage._generate_frame(output_folder, frame, index)
+
+    @staticmethod
+    def _generate_frame(output_folder, frame, index):
         # Ensure output folder exists
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
