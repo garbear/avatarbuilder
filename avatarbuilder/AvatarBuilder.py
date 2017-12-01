@@ -16,6 +16,7 @@
 #
 
 from avatarbuilder.AvatarImage import AvatarImage
+from avatarbuilder.AvatarLanguage import AvatarLanguage
 from avatarbuilder.AvatarRepo import AvatarRepo
 from avatarbuilder.AvatarResources import AvatarResources
 from avatarbuilder.AvatarXml import AvatarXml
@@ -49,12 +50,17 @@ class AvatarBuilder(object):
             os.makedirs(frames_path)
         save_avatars = self._generate_frames(avatars, frames_path)
 
-        # Save avatars.xml
-        avatars_xml_path = os.path.join(build_path, AvatarXml.FILE_NAME)
-        AvatarXml.save_avatars(save_avatars, avatars_xml_path)
-
         # Copy resources
         AvatarResources.copy_files(repo.getpath(), build_path)
+
+        language = AvatarLanguage(save_avatars)
+
+        # Save avatars.xml
+        avatars_xml_path = os.path.join(build_path, AvatarXml.FILE_NAME)
+        AvatarXml.save_avatars(save_avatars, language, avatars_xml_path)
+
+        # Generate language file
+        language.generate_language(build_path)
 
         print('Finished building')
 

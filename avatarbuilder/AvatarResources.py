@@ -15,6 +15,8 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+from avatarbuilder.AvatarLanguage import AvatarLanguage
+
 import os
 import shutil
 
@@ -24,7 +26,7 @@ class AvatarResources(object):
     def copy_files(source, target):
         files = [
             'resources/icon.png',
-            'resources/language/English/strings.po'
+            AvatarLanguage.LANGUAGE_PATH,
             'CC-BY-SA-3.0-LICENSE.txt',
             'Readme.md'
         ]

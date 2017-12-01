@@ -90,11 +90,19 @@ class Avatar(object):
 
         return True
 
-    def serialize(self, avatar_xml, relpath):
+    def serialize(self, avatar_xml, language, relpath):
         from avatarbuilder.AvatarXml import AvatarXml
+
+        # Translate name to string ID
+        name_id = language.get_string_id(self._name)
+        if name_id < 0:
+            print('Error: invalid ID {} for string "{}"'
+                  .format(name_id, self._name))
+            return False
 
         # Serialize name
         avatar_xml.set(AvatarXml.XML_ATTR_NAME, self._name)
+        avatar_xml.set(AvatarXml.XML_ATTR_NAME_ID, str(name_id))
 
         # Serialize frames (TODO)
         relpath = os.path.join(relpath, '')  # Append trailing slash
@@ -123,3 +131,5 @@ class Avatar(object):
             tag = AvatarXml.XML_ELM_DISCLAIMER
             disclaimer = xml.etree.ElementTree.SubElement(avatar_xml, tag)
             disclaimer.text = info.disclaimer()
+
+        return True

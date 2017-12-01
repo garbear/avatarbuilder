@@ -47,6 +47,7 @@ class AvatarXml(object):
     XML_ELM_ASSETS = 'assets'
 
     XML_ATTR_NAME = 'name'
+    XML_ATTR_NAME_ID = 'nameid'
     XML_ATTR_OFFSET = 'offset'
 
     @staticmethod
@@ -100,14 +101,15 @@ class AvatarXml(object):
         return ret
 
     @staticmethod
-    def save_avatars(avatars, avatars_xml_path):
+    def save_avatars(avatars, language, avatars_xml_path):
         print('Saving {} avatars to {}'.format(len(avatars), avatars_xml_path))
+
         relpath = os.path.dirname(avatars_xml_path)
         avatars_xml = xml.etree.ElementTree.Element(AvatarXml.XML_ELM_ROOT)
         for avatar in avatars:
             tag = AvatarXml.XML_ELM_AVATAR
             avatar_xml = xml.etree.ElementTree.SubElement(avatars_xml, tag)
-            avatar.serialize(avatar_xml, relpath)
+            avatar.serialize(avatar_xml, language, relpath)
 
         dom = xml.dom.minidom.parseString(
             xml.etree.ElementTree.tostring(avatars_xml, encoding='UTF-8'))
