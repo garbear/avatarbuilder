@@ -20,23 +20,29 @@ import shutil
 
 
 class AvatarResources(object):
-    _RESOURCES_DIR = 'resources'
-
     @staticmethod
     def copy_files(source, target):
         files = [
             'resources/icon.png',
+            'resources/language/English/strings.po'
             'CC-BY-SA-3.0-LICENSE.txt',
             'Readme.md'
         ]
 
         print('Copying {} static files'.format(len(files)))
 
-        # Ensure resources directory exists
-        resources_path = os.path.join(target, AvatarResources._RESOURCES_DIR)
-        if not os.path.exists(resources_path):
-            os.makedirs(resources_path)
+        # Keep track of which directories have been created
+        dirs = []
 
-        # Copy files
         for file in files:
-            shutil.copy(os.path.join(source, file), os.path.join(target, file))
+            source_file = os.path.join(source, file)
+            target_file = os.path.join(target, file)
+
+            # Ensure directory exists
+            target_dir = os.path.dirname(target_file)
+            if target_dir and target_dir not in dirs:
+                if not os.path.exists(target_dir):
+                    os.makedirs(target_dir)
+                dirs.append(target_dir)
+
+            shutil.copy(source_file, target_file)
