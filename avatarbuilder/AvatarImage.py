@@ -91,19 +91,21 @@ class AvatarImage(object):
     def _get_frames(image, sheet):
         frames = {}
 
-        for j in range(sheet.rows()):
-            for i in range(sheet.columns()):
+        for row in range(sheet.rows()):
+            for col in range(sheet.columns()):
                 # Calculate frame index
                 if sheet.orientation() == Orientation.HORIZONTAL:
-                    index = j * sheet.rows() + i + 1
+                    index = row * sheet.columns() + col + 1
                 else:
-                    index = i * sheet.columns() + j + 1
+                    index = col * sheet.rows() + row + 1
 
-                frame = AvatarImage._get_frame(image, sheet, i, j)
+                frame = AvatarImage._get_frame(image, sheet, row, col)
 
                 if frame is not None:
-                    rgb = numpy.zeros((frame.shape[0], frame.shape[1], 3), dtype=numpy.uint8)
-                    rgba = numpy.zeros((frame.shape[0], frame.shape[1], 4), dtype=numpy.uint8)
+                    rgb = numpy.zeros((frame.shape[0], frame.shape[1], 3),
+                                      dtype=numpy.uint8)
+                    rgba = numpy.zeros((frame.shape[0], frame.shape[1], 4),
+                                       dtype=numpy.uint8)
 
                     if AvatarImage._subtract_background(frame, rgb, rgba):
                         frames[index] = (rgb, rgba)
@@ -116,9 +118,9 @@ class AvatarImage(object):
 
         # Calculate the crop coordinates
         x = sheet.offsetx() + sheet.border() + \
-            row * (sheet.width() + sheet.border())
+            col * (sheet.width() + sheet.border())
         y = sheet.offsety() + sheet.border() + \
-            col * (sheet.height() + sheet.border())
+            row * (sheet.height() + sheet.border())
         w = sheet.width()
         h = sheet.height()
 
