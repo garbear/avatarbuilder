@@ -75,6 +75,11 @@ class Avatar(object):
                 if not action.deserialize(action_elm, self._name):
                     return False
                 self._actions.append(action)
+        else:
+            # TODO: Allow frame generation without actions
+            print('Error: Avatar "{}" has no actions defined'
+                  .format(self._name))
+            return False
 
         # Deserialize assets
         assets_elm = avatar.find(AvatarXml.XML_ELM_ASSETS)
