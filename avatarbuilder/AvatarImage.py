@@ -174,17 +174,19 @@ class AvatarImage(object):
         for i in range(frame.shape[0]):
             for j in range(frame.shape[1]):
                 if numpy.array_equal(frame[i, j], alpha):
-                    rgb[i, j] = numpy.array([0xFF, 0, 0xFF], dtype=numpy.uint8)  # Magenta
-                    rgba[i, j] = numpy.array([0xFF, 0xFF, 0xFF, 0], dtype=numpy.uint8)  # Transparent white
+                    rgb[i, j] = numpy.array([0xFF, 0, 0xFF],
+                                            dtype=numpy.uint8)  # Magenta
+                    rgba[i, j] = numpy.array([0xFF, 0xFF, 0xFF, 0],
+                                             dtype=numpy.uint8)  # Transparent white
                 else:
                     if frame.shape[2] == 3:
-                        rgb[i, j] = frame[i, j]
+                        rgb[i, j] = frame[i, j][::-1]
                         rgba[i, j] = [frame[i, j, 0],
                                       frame[i, j, 1],
                                       frame[i, j, 2],
                                       0xFF]
                     else:
-                        rgb[i, j] = frame[i, j, :3]
+                        rgb[i, j] = frame[i, j, :3][::-1]
                         rgba[i, j] = frame[i, j]
 
     @staticmethod
