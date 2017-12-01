@@ -278,6 +278,6 @@ class AvatarImage(object):
         gif_path = os.path.join(output_folder, filename)
 
         print('Generating "{}"'.format(gif_path))  # TODO
-        durations = [1/12 for rgb_frame in rgb_frames]
+        durations = [1/6 for rgb_frame in rgb_frames]
         kwargs = {'duration': durations}
         imageio.mimwrite(gif_path, rgb_frames, None, **kwargs)
