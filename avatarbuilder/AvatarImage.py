@@ -112,7 +112,7 @@ class AvatarImage(object):
 
     @staticmethod
     def _get_frame(image, sheet, row, col):
-        image_width, image_height = image.shape[:2]
+        image_height, image_width = image.shape[:2]
 
         # Calculate the crop coordinates
         x = sheet.offsetx() + sheet.border() + \
@@ -123,7 +123,10 @@ class AvatarImage(object):
         h = sheet.height()
 
         # Verify we have a complete frame
-        if y + h >= image_height or x + w >= image_width:
+        if y + h > image_height or x + w > image_width:
+            print('Error: Row {}, col {} out of bounds for {}x{} image "{}"'
+                  .format(row, col, image_width, image_height,
+                          os.path.basename(sheet.image())))
             return None
 
         # Crop the image
