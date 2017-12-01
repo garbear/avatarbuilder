@@ -22,6 +22,7 @@ import cv2
 import imageio
 import numpy
 import os
+import subprocess
 
 
 class AvatarImage(object):
@@ -204,7 +205,8 @@ class AvatarImage(object):
 
             for frame_index in action.frames():
                 if frame_index not in frames:
-                    print('Error: Invalid action frame index: {}'.format(frame_index))
+                    print('Error: Invalid action frame index: {}'
+                          .format(frame_index))
                     print('Valid indices are: {}'.format(frames.keys()))
                     return {}
 
@@ -277,7 +279,14 @@ class AvatarImage(object):
         filename = AvatarImage.ACTION_ANIMATION.format(action_name)
         gif_path = os.path.join(output_folder, filename)
 
-        print('Generating "{}"'.format(gif_path))  # TODO
         durations = [1/6 for rgb_frame in rgb_frames]
         kwargs = {'duration': durations}
         imageio.mimwrite(gif_path, rgb_frames, None, **kwargs)
+
+        # Compress gif and add transparency
+        try:
+            # TODO: Make magenta a parameter
+            subprocess.call(['gifsicle', '-O3', '--transparent', '#FF00FF',
+                             gif_path, '-o', gif_path])
+        except FileNotFoundError:
+            print('Error: gifsicle not found. See instructions in Readme.md')
