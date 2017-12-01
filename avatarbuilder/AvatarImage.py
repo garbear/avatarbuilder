@@ -67,6 +67,10 @@ class AvatarImage(object):
         # Generate assets
         assets = avatar.assets()
         if assets is not None:
+            assets_path = os.path.join(path, AvatarImage.ASSETS_FOLDER)
+            if not os.path.exists(assets_path):
+                os.makedirs(assets_path)
+
             filename_index = 1
             for frame_index in assets.frames():
                 if frame_index not in frames:
@@ -76,7 +80,8 @@ class AvatarImage(object):
                     return {}
 
                 asset_frame = frames[frame_index][1]  # RGBA frame
-                AvatarImage._generate_asset(path, asset_frame, filename_index)
+                AvatarImage._generate_frame(assets_path, asset_frame,
+                                            filename_index)
                 filename_index += 1
 
         return True
@@ -256,14 +261,6 @@ class AvatarImage(object):
         # Generate .gif
         rgb_frames = [frame[0] for frame in frames]
         AvatarImage._generate_gif(output_folder, rgb_frames, action_name)
-
-    @staticmethod
-    def _generate_asset(path, frame, index):
-        # Calculate output folder
-        output_folder = os.path.join(path, AvatarImage.ASSETS_FOLDER)
-
-        # Generate frame
-        AvatarImage._generate_frame(output_folder, frame, index)
 
     @staticmethod
     def _generate_frame(output_folder, frame, index):
