@@ -25,10 +25,10 @@ import os
 
 
 class AvatarBuilder(object):
-    AVATARS_FOLDER = 'avatars'
-
     _REPO_FOLDER = 'download'
     _BUILD_FOLDER = 'build'
+    _RESOURCES_FOLDER = 'resources'
+    _AVATARS_FOLDER = 'avatars'
 
     def __init__(self, directory, repo_url):
         self._directory = directory
@@ -44,24 +44,29 @@ class AvatarBuilder(object):
         # Get avatars
         avatars = self._get_avatars(repo.getpath())
 
-        # Generate frames
-        build_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
-        frames_path = os.path.join(build_path, AvatarBuilder.AVATARS_FOLDER)
-        if not os.path.exists(frames_path):
-            os.makedirs(frames_path)
-        save_avatars = self._generate_frames(avatars, frames_path)
+        # Create output folder
+        build_dir = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
+        resources_dir = os.path.join(build_dir, AvatarBuilder._RESOURCES_FOLDER)
+        avatars_dir = os.path.join(resources_dir, AvatarBuilder._AVATARS_FOLDER)
+        if not os.path.exists(avatars_dir):
+            print('Creating avatars folder "{}"'.format(avatars_dir))
+            os.makedirs(avatars_dir)
+
+        print('Saving frames to "{}"'.format(avatars_dir))
+        save_avatars = self._generate_frames(avatars, avatars_dir)
 
         # Copy resources
-        AvatarResources.copy_files(repo.getpath(), build_path)
+        AvatarResources.copy_files(repo.getpath(), build_dir)
 
         language = AvatarLanguage(save_avatars)
 
         # Save avatars.xml
-        avatars_xml_path = os.path.join(build_path, AvatarXml.FILE_NAME)
-        AvatarXml.save_avatars(save_avatars, language, avatars_xml_path)
+        avatars_xml_path = os.path.join(resources_dir, AvatarXml.FILE_NAME)
+        AvatarXml.save_avatars(save_avatars, language, avatars_xml_path,
+                               AvatarBuilder._AVATARS_FOLDER)
 
         # Generate language file
-        language.generate_language(build_path)
+        language.generate_language(build_dir)
 
         print('Finished building')
 

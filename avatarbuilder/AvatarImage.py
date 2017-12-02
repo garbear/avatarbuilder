@@ -15,7 +15,6 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
-from avatarbuilder.AvatarAction import AvatarAction
 from avatarbuilder.AvatarAssets import AvatarAssets
 from avatarbuilder.AvatarFrame import AvatarFrame
 from avatarbuilder.AvatarSheet import Orientation
@@ -64,19 +63,19 @@ class AvatarImage(object):
         for index in frames.keys():
             frame = frames[index]
             rgba_frame = frame[1]
-            AvatarImage._generate_scaled_frames(path, rgba_frame, index)
+            AvatarImage._generate_scaled_frames(avatar_path, rgba_frame, index)
 
         # Generate actions
         actions = AvatarImage._get_actions(avatar.actions(), frames)
         for action_tuple in actions:
             action = action_tuple[0]
             action_frames = action_tuple[1]
-            AvatarImage._generate_action(path, action, action_frames)
+            AvatarImage._generate_action(avatar_path, action, action_frames)
 
         # Generate assets
         assets = avatar.assets()
         if assets is not None:
-            assets_path = os.path.join(path, AvatarAssets.ASSETS_FOLDER)
+            assets_path = os.path.join(avatar_path, AvatarAssets.ASSETS_FOLDER)
             if not os.path.exists(assets_path):
                 os.makedirs(assets_path)
 

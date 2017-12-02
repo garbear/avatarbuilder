@@ -96,7 +96,7 @@ class Avatar(object):
 
         return True
 
-    def serialize(self, avatar_xml, language):
+    def serialize(self, avatar_xml, language, avatars_folder):
         from avatarbuilder.AvatarXml import AvatarXml
 
         # Translate name to string ID
@@ -137,6 +137,6 @@ class Avatar(object):
             tag = AvatarXml.XML_ELM_ACTIONS
             actions_elm = xml.etree.ElementTree.SubElement(avatar_xml, tag)
             for action in self._actions:
-                action.serialize(actions_elm)
+                action.serialize(actions_elm, avatars_folder)
 
         return True

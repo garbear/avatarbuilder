@@ -34,20 +34,21 @@ class AvatarLanguage(object):
     def get_string_id(self, s):
         return self._strings.get(s, -1)
 
-    def generate_language(self, build_path):
-        language_path = os.path.join(build_path, AvatarLanguage.LANGUAGE_PATH)
+    def generate_language(self, resources_dir):
+        language_path = os.path.join(resources_dir,
+                                     AvatarLanguage.LANGUAGE_PATH)
 
-        print('Generating language file "{}"'.format(language_path))
+        print('Appending language file "{}"'.format(language_path))
 
         with open(language_path, 'a') as file:
             for line in self._strings.keys():
                 string_id = self.get_string_id(line)
                 if string_id >= 0:
-                    content = self.get_string_block(string_id, line)
+                    content = self.get_message_block(string_id, line)
                     file.write(content)
 
     @staticmethod
-    def get_string_block(string_id, line):
+    def get_message_block(string_id, line):
         content = '\n'
         content += 'msgctxt "#{}"\n'.format(string_id)
         content += 'msgid "{}"\n'.format(line)

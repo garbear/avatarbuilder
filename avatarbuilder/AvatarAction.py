@@ -36,11 +36,7 @@ class AvatarAction(object):
         return self._frames
 
     def relpath(self):
-        from avatarbuilder.AvatarBuilder import AvatarBuilder
-
-        avatars_folder = AvatarBuilder.AVATARS_FOLDER
-        avatar_folder = os.path.join(avatars_folder, self._avatar.save_path())
-        action_folder = os.path.join(avatar_folder, self._name)
+        action_folder = self._name
 
         filename = AvatarAction.ACTION_ANIMATION.format(self._name)
         relpath = os.path.join(action_folder, filename)
@@ -71,10 +67,13 @@ class AvatarAction(object):
 
         return True
 
-    def serialize(self, actions_elm):
+    def serialize(self, actions_elm, avatars_folder):
         from avatarbuilder.AvatarXml import AvatarXml
 
         action_tag = AvatarXml.XML_ELM_ACTION
         action_elm = xml.etree.ElementTree.SubElement(actions_elm, action_tag)
         action_elm.set(AvatarXml.XML_ATTR_NAME, self._name)
-        action_elm.text = self.relpath()
+
+        avatar_dir = os.path.join(avatars_folder, self._avatar.save_path())
+        action_path = os.path.join(avatar_dir, self.relpath())
+        action_elm.text = action_path

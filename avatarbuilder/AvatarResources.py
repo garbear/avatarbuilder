@@ -44,6 +44,7 @@ class AvatarResources(object):
             target_dir = os.path.dirname(target_file)
             if target_dir and target_dir not in dirs:
                 if not os.path.exists(target_dir):
+                    print('Creating directory "{}"'.format(target_dir))
                     os.makedirs(target_dir)
                 dirs.append(target_dir)
 
