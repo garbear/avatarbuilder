@@ -15,6 +15,9 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 
+from avatarbuilder.AvatarAction import AvatarAction
+from avatarbuilder.AvatarAssets import AvatarAssets
+from avatarbuilder.AvatarFrame import AvatarFrame
 from avatarbuilder.AvatarSheet import Orientation
 
 import collections
@@ -27,9 +30,6 @@ import subprocess
 
 class AvatarImage(object):
     FRAME_PATH = '{0:02d}x'  # {0} - scaling factor
-    FILE_NAME = '{0:03d}.png'  # {0} - frame index
-    ASSETS_FOLDER = 'assets'
-    ACTION_ANIMATION = '{0}.gif'  # {0} - action name
 
     @staticmethod
     def load_image(image_path):
@@ -46,6 +46,13 @@ class AvatarImage(object):
     def generate_frames(image, avatar, path):
         sheet = avatar.sheet()
 
+        # Generate path for avatar
+        avatar_path = os.path.join(path, avatar.save_path())
+
+        # Ensure path exists
+        if not os.path.exists(avatar_path):
+            os.makedirs(avatar_path)
+
         # Extract frames from image
         frames = AvatarImage._get_frames(image, sheet)
         if not frames:
@@ -61,14 +68,15 @@ class AvatarImage(object):
 
         # Generate actions
         actions = AvatarImage._get_actions(avatar.actions(), frames)
-        for action_name in actions.keys():
-            action_frames = actions[action_name]
-            AvatarImage._generate_action(path, action_name, action_frames)
+        for action_tuple in actions:
+            action = action_tuple[0]
+            action_frames = action_tuple[1]
+            AvatarImage._generate_action(path, action, action_frames)
 
         # Generate assets
         assets = avatar.assets()
         if assets is not None:
-            assets_path = os.path.join(path, AvatarImage.ASSETS_FOLDER)
+            assets_path = os.path.join(path, AvatarAssets.ASSETS_FOLDER)
             if not os.path.exists(assets_path):
                 os.makedirs(assets_path)
 
@@ -202,7 +210,7 @@ class AvatarImage(object):
 
     @staticmethod
     def _get_actions(actions, frames):
-        ret = {}
+        ret = []
 
         for action in actions:
             action_name = action.name()
@@ -219,7 +227,7 @@ class AvatarImage(object):
                 action_frames.append(frame)
 
             if action_frames:
-                ret[action_name] = action_frames
+                ret.append((action, action_frames))
 
         return ret
 
@@ -250,9 +258,10 @@ class AvatarImage(object):
             AvatarImage._generate_frame(output_folder, scaled, index)
 
     @staticmethod
-    def _generate_action(path, action_name, frames):
-        # Calculate output folder
-        output_folder = os.path.join(path, action_name)
+    def _generate_action(path, action, frames):
+        # Calculate output path
+        output_path = os.path.join(path, action.relpath())
+        output_folder = os.path.dirname(output_path)
 
         # Ensure output folder exists
         if not os.path.exists(output_folder):
@@ -267,23 +276,19 @@ class AvatarImage(object):
 
         # Generate .gif
         rgb_frames = [frame[0] for frame in frames]
-        AvatarImage._generate_gif(output_folder, rgb_frames, action_name)
+        AvatarImage._generate_gif(output_path, rgb_frames)
 
     @staticmethod
     def _generate_frame(output_folder, frame, index):
         # Calculate filename
-        filename = AvatarImage.FILE_NAME.format(index)
+        filename = AvatarFrame.FILE_NAME.format(index)
         frame_path = os.path.join(output_folder, filename)
 
         # Write image
         cv2.imwrite(frame_path, frame)
 
     @staticmethod
-    def _generate_gif(output_folder, rgb_frames, action_name):
-        # Calculate filename
-        filename = AvatarImage.ACTION_ANIMATION.format(action_name)
-        gif_path = os.path.join(output_folder, filename)
-
+    def _generate_gif(gif_path, rgb_frames):
         durations = [1/6 for rgb_frame in rgb_frames]
         kwargs = {'duration': durations}
         imageio.mimwrite(gif_path, rgb_frames, None, **kwargs)

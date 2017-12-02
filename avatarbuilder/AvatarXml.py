@@ -104,12 +104,11 @@ class AvatarXml(object):
     def save_avatars(avatars, language, avatars_xml_path):
         print('Saving {} avatars to {}'.format(len(avatars), avatars_xml_path))
 
-        relpath = os.path.dirname(avatars_xml_path)
         avatars_xml = xml.etree.ElementTree.Element(AvatarXml.XML_ELM_ROOT)
         for avatar in avatars:
             tag = AvatarXml.XML_ELM_AVATAR
             avatar_xml = xml.etree.ElementTree.SubElement(avatars_xml, tag)
-            avatar.serialize(avatar_xml, language, relpath)
+            avatar.serialize(avatar_xml, language)
 
         dom = xml.dom.minidom.parseString(
             xml.etree.ElementTree.tostring(avatars_xml, encoding='UTF-8'))

@@ -17,6 +17,8 @@
 
 
 class AvatarFrame(object):
+    FILE_NAME = '{0:03d}.png'  # {0} - frame index
+
     @staticmethod
     def deserialize(frame_elm, avatar_name):
         from avatarbuilder.AvatarXml import AvatarXml

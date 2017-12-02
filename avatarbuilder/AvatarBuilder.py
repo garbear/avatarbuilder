@@ -109,17 +109,7 @@ class AvatarBuilder(object):
                       .format(avatar.name(), sheet.image()))
                 continue
 
-            # Generate path for avatar
-            avatar_path = os.path.join(save_path, avatar.name())
-
-            # Replace spaces with underscores
-            avatar_path = avatar_path.replace(' ', '_')
-
-            # Ensure path exists
-            if not os.path.exists(avatar_path):
-                os.makedirs(avatar_path)
-
-            if AvatarImage.generate_frames(image, avatar, avatar_path):
+            if AvatarImage.generate_frames(image, avatar, save_path):
                 save_avatars.append(avatar)
 
         return save_avatars

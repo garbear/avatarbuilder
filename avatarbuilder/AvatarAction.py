@@ -17,9 +17,15 @@
 
 from avatarbuilder.AvatarFrame import AvatarFrame
 
+import os
+import xml.etree.ElementTree
+
 
 class AvatarAction(object):
-    def __init__(self):
+    ACTION_ANIMATION = '{0}.gif'  # {0} - action name
+
+    def __init__(self, avatar):
+        self._avatar = avatar
         self._name = ''
         self._frames = []
 
@@ -29,26 +35,42 @@ class AvatarAction(object):
     def frames(self):
         return self._frames
 
-    def deserialize(self, action, avatar_name):
+    def relpath(self):
+        action_folder = os.path.join(self._avatar.save_path(), self._name)
+
+        filename = AvatarAction.ACTION_ANIMATION.format(self._name)
+        relpath = os.path.join(action_folder, filename)
+
+        return relpath
+
+    def deserialize(self, action):
         from avatarbuilder.AvatarXml import AvatarXml
 
         # Get name
         self._name = action.get(AvatarXml.XML_ATTR_NAME)
         if not self._name:
             print('Error: Avatar "{}" - <{}> tag is missing "{}" attribute'
-                  .format(avatar_name, AvatarXml.XML_ELM_ACTION,
+                  .format(self._avatar.name(), AvatarXml.XML_ELM_ACTION,
                           AvatarXml.XML_ATTR_NAME))
             return False
 
         # Get frames
         for frame_elm in action.findall(AvatarXml.XML_ELM_FRAME):
-            frame = AvatarFrame.deserialize(frame_elm, avatar_name)
+            frame = AvatarFrame.deserialize(frame_elm, self._avatar.name())
             if frame > 0:
                 self._frames.append(frame)
 
         if not self._frames:
             print('Error: Avatar "{}" - <{}> tag contains no valid frames'
-                  .format(avatar_name, AvatarXml.XML_ELM_ACTION))
+                  .format(self._avatar.name(), AvatarXml.XML_ELM_ACTION))
             return False
 
         return True
+
+    def serialize(self, actions_elm):
+        from avatarbuilder.AvatarXml import AvatarXml
+
+        action_tag = AvatarXml.XML_ELM_ACTION
+        action_elm = xml.etree.ElementTree.SubElement(actions_elm, action_tag)
+        action_elm.set(AvatarXml.XML_ATTR_NAME, self._name)
+        action_elm.text = self.relpath()

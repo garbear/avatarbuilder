@@ -46,6 +46,12 @@ class Avatar(object):
     def assets(self):
         return self._assets
 
+    def save_path(self):
+        # Replace spaces with underscores for pngcrush
+        avatar_path = self._name.replace(' ', '_')
+
+        return avatar_path
+
     def deserialize(self, avatar, root_dir):
         from avatarbuilder.AvatarXml import AvatarXml
 
@@ -71,8 +77,8 @@ class Avatar(object):
         actions_elm = avatar.find(AvatarXml.XML_ELM_ACTIONS)
         if actions_elm:
             for action_elm in actions_elm.findall(AvatarXml.XML_ELM_ACTION):
-                action = AvatarAction()
-                if not action.deserialize(action_elm, self._name):
+                action = AvatarAction(self)
+                if not action.deserialize(action_elm):
                     return False
                 self._actions.append(action)
         else:
@@ -90,7 +96,7 @@ class Avatar(object):
 
         return True
 
-    def serialize(self, avatar_xml, language, relpath):
+    def serialize(self, avatar_xml, language):
         from avatarbuilder.AvatarXml import AvatarXml
 
         # Translate name to string ID
@@ -103,12 +109,6 @@ class Avatar(object):
         # Serialize name
         avatar_xml.set(AvatarXml.XML_ATTR_NAME, self._name)
         avatar_xml.set(AvatarXml.XML_ATTR_NAME_ID, str(name_id))
-
-        # Serialize frames (TODO)
-        relpath = os.path.join(relpath, '')  # Append trailing slash
-        common = os.path.commonprefix([relpath, self._sheet.image()])
-        image_path = self._sheet.image()[len(common):]
-        # avatar_xml.set('image', image_path)
 
         # Serialize metadata
         info = self._info
@@ -131,5 +131,12 @@ class Avatar(object):
             tag = AvatarXml.XML_ELM_DISCLAIMER
             disclaimer = xml.etree.ElementTree.SubElement(avatar_xml, tag)
             disclaimer.text = info.disclaimer()
+
+        # Serialize actions
+        if self._actions:
+            tag = AvatarXml.XML_ELM_ACTIONS
+            actions_elm = xml.etree.ElementTree.SubElement(avatar_xml, tag)
+            for action in self._actions:
+                action.serialize(actions_elm)
 
         return True

@@ -19,6 +19,8 @@ from avatarbuilder.AvatarFrame import AvatarFrame
 
 
 class AvatarAssets(object):
+    ASSETS_FOLDER = 'assets'
+
     def __init__(self):
         self._frames = []
 
