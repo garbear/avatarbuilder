@@ -25,9 +25,10 @@ import os
 
 
 class AvatarBuilder(object):
+    AVATARS_FOLDER = 'avatars'
+
     _REPO_FOLDER = 'download'
     _BUILD_FOLDER = 'build'
-    _AVATARS_FOLDER = 'avatars'
 
     def __init__(self, directory, repo_url):
         self._directory = directory
@@ -45,7 +46,7 @@ class AvatarBuilder(object):
 
         # Generate frames
         build_path = os.path.join(self._directory, AvatarBuilder._BUILD_FOLDER)
-        frames_path = os.path.join(build_path, AvatarBuilder._AVATARS_FOLDER)
+        frames_path = os.path.join(build_path, AvatarBuilder.AVATARS_FOLDER)
         if not os.path.exists(frames_path):
             os.makedirs(frames_path)
         save_avatars = self._generate_frames(avatars, frames_path)

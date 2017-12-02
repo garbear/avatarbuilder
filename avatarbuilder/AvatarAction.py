@@ -36,7 +36,11 @@ class AvatarAction(object):
         return self._frames
 
     def relpath(self):
-        action_folder = os.path.join(self._avatar.save_path(), self._name)
+        from avatarbuilder.AvatarBuilder import AvatarBuilder
+
+        avatars_folder = AvatarBuilder.AVATARS_FOLDER
+        avatar_folder = os.path.join(avatars_folder, self._avatar.save_path())
+        action_folder = os.path.join(avatar_folder, self._name)
 
         filename = AvatarAction.ACTION_ANIMATION.format(self._name)
         relpath = os.path.join(action_folder, filename)
