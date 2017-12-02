@@ -27,7 +27,7 @@ class AvatarResources(object):
         files = [
             'resources/icon.png',
             AvatarLanguage.LANGUAGE_PATH,
-            'CC-BY-SA-3.0-LICENSE.txt',
+            'LICENSE-CC-BY-SA-3.0.txt',
             'Readme.md'
         ]
 
